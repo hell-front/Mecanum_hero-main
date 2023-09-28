@@ -14,7 +14,8 @@ uint8_t remote_buf[18];
 
 extern struct Class_Chassis Chassis;
 extern Class_Gimbal Gimbal;
-extern Class_Shoot Shoot;
+extern Class_Shoot Shoot_front;
+extern Class_Shoot Shoot_back;
 
 extern GM6020_moter GM6020_pitch;
 extern GM6020_moter GM6020_yaw;
@@ -192,15 +193,23 @@ void Class_Remote_data::remote_DT7_control(){//用遥控器控制机器人的函
                 }else if(Chassis.wheel_angle<-60.0f){
                         Chassis.wheel_angle=-60.0f;
                 }
-                Shoot.velocity+=(Channel_user-1024)*Gain_friction;
-                if (Shoot.velocity>50000)
+                Shoot_back.velocity+=(Channel_user-1024)*Gain_friction;
+                Shoot_front.velocity+=(Channel_user-1024)*Gain_friction;
+                if (Shoot_back.velocity>50000)
                 {
-                        Shoot.velocity=50000;
-                }else if (Shoot.velocity<0)
+                        Shoot_back.velocity=50000;
+                }else if (Shoot_back.velocity<0)
                 {
-                        Shoot.velocity=0;
+                        Shoot_back.velocity=0;
                 }
                 
+                if (Shoot_front.velocity>50000)
+                {
+                        Shoot_front.velocity=50000;
+                }else if (Shoot_front.velocity<0)
+                {
+                        Shoot_front.velocity=0;
+                }
                 Gimbal.location_pitch+=(Channel_1-1024)*Gain_pitch;
                 if(Gimbal.location_pitch<GM6020_pitch.location_min){
                         Gimbal.location_pitch=GM6020_pitch.location_min;
@@ -214,24 +223,31 @@ void Class_Remote_data::remote_DT7_control(){//用遥控器控制机器人的函
 //以下将对右面开关进行分析，右面的开关主要是负责射击机构的状态
         if(State_right==Remote_Switch_Right3&&State_right_last==Remote_Switch_Right2){
 
-                if(Shoot.state_friction==0){
+                if(Shoot_front.state_friction==0){
                         Gimbal.gimbal_auto=1;
-                        Shoot.state_friction=1;
+                        Shoot_front.state_friction=1;
                 }else{
-                        Shoot.state_friction=0;
+                        Shoot_front.state_friction=0;
+                        Gimbal.gimbal_auto=0;
+                }
+                if(Shoot_back.state_friction==0){
+                        Gimbal.gimbal_auto=1;
+                        Shoot_back.state_friction=1;
+                }else{
+                        Shoot_back.state_friction=0;
                         Gimbal.gimbal_auto=0;
                 }
                 
         }
-        if(State_right==Remote_Switch_Right1&&Shoot.state_friction==1&&Shoot.plate_locked==0){
+        if(State_right==Remote_Switch_Right1&&Shoot_back.state_friction==1&&Shoot_back.plate_locked==0){
                 Remote.State_right1_num++;
                 if(State_right_last==Remote_Switch_Right2){
-                        Shoot.plate_location+=60.0f;
-                        Shoot.state_plate=1;
+                        Shoot_back.plate_location+=60.0f;
+                        Shoot_back.state_plate=1;
                 }
                 if(Remote.State_right1_num>142){
-                        Shoot.plate_location+=1.2f;
-                        Shoot.state_plate=2;
+                        Shoot_back.plate_location+=1.2f;
+                        Shoot_back.state_plate=2;
                 }
 
         }else{
@@ -416,13 +432,19 @@ void Class_Remote_data::remote_keyboard_control(){//用键盘控制机器人的�
                                 Remote.Mouse_left_num++;
                                 if(Mouse_left_last == 0)//点射
                                 {
-                                        Shoot.plate_location+=60.0f;
-                                        Shoot.state_plate=1;
+                                        Shoot_front.plate_location+=60.0f;
+                                        Shoot_front.state_plate=1;
+
+                                        Shoot_back.plate_location+=60.0f;
+                                        Shoot_back.state_plate=1;
                                 }
                                 if(Remote.Mouse_left_num > 20)//连射
                                 {
-                                        Shoot.plate_location+=Firing_frequency;
-                                        Shoot.state_plate=2;
+                                        Shoot_front.plate_location+=Firing_frequency;
+                                        Shoot_front.state_plate=2;
+
+                                        Shoot_back.plate_location+=Firing_frequency;
+                                        Shoot_back.state_plate=2;
                                 }
                         }
 		}

@@ -16,7 +16,8 @@ extern "C"{                      //-----------��׼д��-----------
 	/*高校联盟赛的射速控制3V3*/
 /*爆发优先*/
 //射速
-#define ERUPT_SHOOT_SPEED   33000
+#define ERUPT_SHOOT_SPEED_FRONT   33000
+#define ERUPT_SHOOT_SPEED_BACK   20000
 /*弹速优先*/
 //射速
 #define SPEED_SHOOT_SPEED	10000
@@ -42,7 +43,7 @@ private:
 public:
 
 
-    Class_Shoot(uint8_t STATE=0);
+    Class_Shoot(uint8_t STATE=0,float VELOCITY=0);
     uint8_t state_friction;//0表示摩擦轮关闭，1表示摩擦轮开启
     uint8_t state_plate;//0表示关闭，1表示点射，2表示连射
     float Delta_vel_shoot_plus;

@@ -21,15 +21,15 @@ C620_driver friction_right_back(0x07,1);
 //struct  shoot_move shoot={1};
 
 
-Class_Shoot Shoot_front(1,ERUPT_SHOOT_SPEED);
-Class_Shoot Shoot_back(1,ERUPT_SHOOT_SPEED);
+Class_Shoot Shoot_front(1,ERUPT_SHOOT_SPEED_FRONT);
+Class_Shoot Shoot_back(1,ERUPT_SHOOT_SPEED_BACK);
 
 
 extern Referee_System Referee;
 
 float Firing_frequency = 1.2f ;//低保射频 
 
-Class_Shoot::Class_Shoot(uint8_t STATE,uint8_t VELOCITY){
+Class_Shoot::Class_Shoot(uint8_t STATE,float VELOCITY){
     state_friction=STATE;
     state_plate=2;
     plate_location=0;
@@ -202,8 +202,8 @@ void Bounce_speed_planning(void)
 {
 	if(Referee.Game_robot_status.shooter_id1_42mm_speed_limit == 10)//弹速限制
 	{	
-        Shoot_front.velocity = ERUPT_SHOOT_SPEED;
-		Shoot_back.velocity = ERUPT_SHOOT_SPEED;//爆发优先	
+        Shoot_front.velocity = ERUPT_SHOOT_SPEED_FRONT;
+		Shoot_back.velocity = ERUPT_SHOOT_SPEED_BACK;//爆发优先	
 	}
 	else if(Referee.Game_robot_status.shooter_id1_42mm_speed_limit == 16)
 	{
@@ -212,8 +212,8 @@ void Bounce_speed_planning(void)
 	}
     else //低保
     {
-        Shoot_front.velocity = ERUPT_SHOOT_SPEED;
-        Shoot_back.velocity = ERUPT_SHOOT_SPEED;//爆发优先
+        Shoot_front.velocity = ERUPT_SHOOT_SPEED_FRONT;
+        Shoot_back.velocity = ERUPT_SHOOT_SPEED_BACK;//爆发优先
     }
 }
 

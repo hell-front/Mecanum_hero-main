@@ -386,7 +386,7 @@ void Task_SerialPlot(void *parameter){
 
         while (1){
 
-            temp1 = C620_plate.get_current_real();
+            //temp1 = C620_plate.get_current_real();
 //            temp2 = Referee.Power_heat_data.chassis_power;
 			// temp1=Imu_mini.AHRSdata_Packet.Roll;
 			// temp2 =Imu_mini.AHRSdata_Packet.Pitch;
@@ -416,6 +416,10 @@ void Task_SerialPlot(void *parameter){
 //            temp8=Chassis.angle_target;
 //            temp9 = -Imu_mini.Angle_Yaw_real-Chassis.angle_init;
 
+            temp1 = friction_left_front.get_velocity_real();
+            temp2 = friction_right_front.get_velocity_real();
+            temp3 = friction_left_back.get_velocity_real();
+            temp4 = friction_right_back.get_velocity_real();
 
 
              memcpy(rx_buf+1,&temp1,4);
