@@ -1,0 +1,7 @@
+/MDK-ARM/*
+!/MDK-ARM/bth_demo.uvoptx
+!/MDK-ARM/bth_demo.uvprojx
+!/MDK-ARM/startup_stm32f427xx.s
+/.idea
+start.cmd
+workspace.code-workspace
