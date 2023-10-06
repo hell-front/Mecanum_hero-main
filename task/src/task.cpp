@@ -416,17 +416,17 @@ void Task_SerialPlot(void *parameter){
 //            temp8=Chassis.angle_target;
 //            temp9 = -Imu_mini.Angle_Yaw_real-Chassis.angle_init;
 
-            temp1 = friction_left_front.get_velocity_real();
-            temp2 = friction_right_front.get_velocity_real();
-            temp3 = friction_left_back.get_velocity_real();
-            temp4 = friction_right_back.get_velocity_real();
+            temp1 = friction_left_front.velocity_real;
+            temp2 = friction_right_front.velocity_real;
+            temp3 = friction_left_back.velocity_real;
+            temp4 = friction_right_back.velocity_real;
 
 
-             memcpy(rx_buf+1,&temp1,4);
-             memcpy(rx_buf+5,&temp2,4);
-             memcpy(rx_buf+9,&temp3,4);
-             memcpy(rx_buf+13,&temp4,4);
-             memcpy(rx_buf+17, &temp5, 4);
+            memcpy(rx_buf+1,&temp1,4);
+            memcpy(rx_buf+5,&temp2,4);
+            memcpy(rx_buf+9,&temp3,4);
+            memcpy(rx_buf+13,&temp4,4);
+            memcpy(rx_buf+17, &temp5, 4);
 			memcpy(rx_buf+21, &temp6, 4);
             memcpy(rx_buf+25, &temp7, 4);
 			memcpy(rx_buf+29, &temp8, 4);

@@ -57,14 +57,14 @@ void Shoot_init(){
     friction_left_front.velocity_PID.PID_init(0.95f,0.0047f,2);
     friction_left_front.velocity_PID.PID_anti_integ_saturated_init(Current_MAX_M3508,-Current_MAX_M3508);
 
-    friction_left_back.velocity_PID.PID_init(0.95f,0.0047f,2);
+    friction_left_back.velocity_PID.PID_init(0.95f,0.0047f,3);
     friction_left_back.velocity_PID.PID_anti_integ_saturated_init(Current_MAX_M3508,-Current_MAX_M3508);
 
     
     friction_right_front.velocity_PID.PID_init(0.95f,0.0047f,2);
     friction_right_front.velocity_PID.PID_anti_integ_saturated_init(Current_MAX_M3508,-Current_MAX_M3508);
 
-    friction_right_back.velocity_PID.PID_init(0.95f,0.0047f,2);
+    friction_right_back.velocity_PID.PID_init(0.95f,0.0047f,3);
     friction_right_back.velocity_PID.PID_anti_integ_saturated_init(Current_MAX_M3508,-Current_MAX_M3508);
 
 }

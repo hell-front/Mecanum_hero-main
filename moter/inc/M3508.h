@@ -14,11 +14,6 @@ extern "C"{                      //-----------��׼д��-----------
 class C620_driver
 {
 private:
-    int16_t current_real;
-    float   velocity_real;
-    float   location_real;
-    int8_t  temperature;
-    
 
 
 
@@ -33,8 +28,14 @@ public:
     float   location_target;
     float   gear_ratio;
 
-    float angle_last;
+    int16_t current_real;
+    float   location_real;
+    int8_t  temperature;
+    
 
+    float   angle_last;
+
+    float   velocity_real;
 
 
 
