@@ -18,9 +18,6 @@ extern "C"{                      //-----------��׼д��-----------
 //射速
 #define ERUPT_SHOOT_SPEED_FRONT   30300
 #define ERUPT_SHOOT_SPEED_BACK  19200
-/*弹速优先*/
-//射速
-#define SPEED_SHOOT_SPEED	10000
 
 
 

@@ -57,14 +57,14 @@ void Shoot_init(){
     friction_left_front.velocity_PID.PID_init(0.95f,0.0047f,2);
     friction_left_front.velocity_PID.PID_anti_integ_saturated_init(Current_MAX_M3508,-Current_MAX_M3508);
 
-    friction_left_back.velocity_PID.PID_init(0.95f,0.0047f,3);
+    friction_left_back.velocity_PID.PID_init(0.95f,0.0047f,1);
     friction_left_back.velocity_PID.PID_anti_integ_saturated_init(Current_MAX_M3508,-Current_MAX_M3508);
 
     
     friction_right_front.velocity_PID.PID_init(0.95f,0.0047f,2);
     friction_right_front.velocity_PID.PID_anti_integ_saturated_init(Current_MAX_M3508,-Current_MAX_M3508);
 
-    friction_right_back.velocity_PID.PID_init(0.95f,0.0047f,3);
+    friction_right_back.velocity_PID.PID_init(0.95f,0.0047f,1);
     friction_right_back.velocity_PID.PID_anti_integ_saturated_init(Current_MAX_M3508,-Current_MAX_M3508);
 
 }
@@ -200,15 +200,10 @@ void velocity_plan_s(float velocity,float *velocity_plan,float Delta_plus,float 
 /*高校联盟赛弹速规划*/
 void Bounce_speed_planning(void)
 {
-	if(Referee.Game_robot_status.shooter_id1_42mm_speed_limit == 10)//弹速限制
+	if(Referee.Game_robot_status.shooter_id1_42mm_speed_limit == 16)//弹速限制
 	{	
         Shoot_front.velocity = ERUPT_SHOOT_SPEED_FRONT;
 		Shoot_back.velocity = ERUPT_SHOOT_SPEED_BACK;//爆发优先	
-	}
-	else if(Referee.Game_robot_status.shooter_id1_42mm_speed_limit == 16)
-	{
-        Shoot_front.velocity = SPEED_SHOOT_SPEED;
-		Shoot_back.velocity = SPEED_SHOOT_SPEED;//弹速优先
 	}
     else //低保
     {
