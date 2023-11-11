@@ -191,6 +191,11 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 						break;
 
 					}
+          case 0x210:{
+						friction_right_back.Can_Data_processing(can_Rx_buf);
+						break;
+
+					}
 					default:
 						break;
 					}

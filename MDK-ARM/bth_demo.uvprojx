@@ -961,6 +961,11 @@
               <FileType>8</FileType>
               <FilePath>..\moter\src\Servo.cpp</FilePath>
             </File>
+            <File>
+              <FileName>DM4310.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\moter\src\DM4310.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2321,5 +2326,14 @@
     </components>
     <files/>
   </RTE>
+
+  <LayerInfo>
+    <Layers>
+      <Layer>
+        <LayName>bth_demo</LayName>
+        <LayPrjMark>1</LayPrjMark>
+      </Layer>
+    </Layers>
+  </LayerInfo>
 
 </Project>
