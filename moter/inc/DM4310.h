@@ -17,12 +17,12 @@ class DM4310_moter
     float   torque_real;
     float   velocity_real;
     float   location_real;
-    int8_t  temperature;
+    float   Temperaturemos;
+    float   Temperaturecoil;
     
 
     float   angle_last;
 
-    float   velocity_real;
 }
 
 #ifdef __cplusplus      

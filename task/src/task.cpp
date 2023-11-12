@@ -337,7 +337,8 @@ void Task_Shoot(void *parameter){
             rt_sem_take(sem_can_Tx_full,0x01);
             Send_Data_Dj(&hcan2,0x200,0,C620_plate.current_target,friction_right_front.current_target,friction_left_front.current_target);
             Send_Data_Dj(&hcan2,0x1ff,0,0,friction_right_back.current_target,friction_left_back.current_target);
-              
+        
+
             
 
             C620_plate.CAN_update=0;
