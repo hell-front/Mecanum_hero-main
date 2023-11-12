@@ -29,7 +29,8 @@ void C620_driver::set_zero_position(){
 
 
 
-void C620_driver::Can_Data_processing(uint8_t buf[]){
+void C620_driver::Can_Data_processing(uint8_t buf[])
+{
 
     float angle_now;
 

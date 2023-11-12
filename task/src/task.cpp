@@ -35,7 +35,7 @@ rt_sem_t sem_can_Tx_full;
 rt_sem_t sem_mini_pc;
 
 
-
+DM4310_moter test_moter;
 
 
 extern CAN_HandleTypeDef hcan1;
@@ -162,7 +162,7 @@ void Task_Init(void *parameter){
         
     // }m
     rt_thread_delay(50);
-
+    Chassis_Mecanum_wheel_init();
     Chassis_Mecanum_wheel_init();  //底盘初�?�化，主要是初�?�化底盘电机的pid，初始化速度�?0防�?�暴�?
     Shoot_init();                   //云台初�?�化，内容同�?
     Gimbal_init();                  //射击初�?�化，内容同�?
@@ -207,19 +207,34 @@ void Task_test_motor(void *parameter)
 
     while(1)
     {
-        Shoot_resolution();
-        Shoot_PID();
-        rt_sem_take(sem_can_Tx_full,0x01);
-        Send_Data_Dj(&hcan2,0x200,0,C620_plate.current_target,friction_right_front.current_target,friction_left_front.current_target);
-        rt_thread_delay(1);
-        Send_Data_Dj(&hcan2,0x1ff,0,0,friction_right_back.current_target,friction_left_back.current_target);
-        rt_thread_delay(1);
 
-        C620_plate.CAN_update=0;    
-        friction_left_front.CAN_update=0;
-        friction_right_front.CAN_update=0;
-        friction_left_back.CAN_update=0;
-        friction_right_back.CAN_update=0;
+        DM4310_motor test_motor(0x10,0);
+        for (i=0;i<=10;i++)
+        {
+            Send_Data_DM(&hcan2,0x210,i,5);
+            rt_thread_delay(1000);
+        }
+         for (i=10;i>=10;i--)
+        {
+            Send_Data_DM(&hcan2,0x210,i,5);
+            rt_thread_delay(1000);
+        }
+
+
+
+        // Shoot_resolution();
+        // Shoot_PID();
+        // rt_sem_take(sem_can_Tx_full,0x01);
+        // Send_Data_Dj(&hcan2,0x200,0,C620_plate.current_target,friction_right_front.current_target,friction_left_front.current_target);
+        // rt_thread_delay(1);
+        // Send_Data_Dj(&hcan2,0x1ff,0,0,friction_right_back.current_target,friction_left_back.current_target);
+        // rt_thread_delay(1);
+
+        // C620_plate.CAN_update=0;    
+        // friction_left_front.CAN_update=0;
+        // friction_right_front.CAN_update=0;
+        // friction_left_back.CAN_update=0;
+        // friction_right_back.CAN_update=0;
 
     }
 }
@@ -417,11 +432,8 @@ void Task_SerialPlot(void *parameter){
 //            temp8=Chassis.angle_target;
 //            temp9 = -Imu_mini.Angle_Yaw_real-Chassis.angle_init;
 
-            temp1 = friction_left_front.velocity_real;
-            temp2 = friction_right_front.velocity_real;
-            temp3 = friction_left_back.velocity_real;
-            temp4 = friction_right_back.velocity_real;
-
+            temp1 = test_motor.velocity_real;
+            temp2 = test_motor.velocity_real;
 
             memcpy(rx_buf+1,&temp1,4);
             memcpy(rx_buf+5,&temp2,4);

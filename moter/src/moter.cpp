@@ -46,25 +46,25 @@ void Send_Data_DM(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , float Position_
         TX_header.IDE=CAN_ID_STD;
         TX_header.RTR=CAN_RTR_DATA;
 
-        // Position_buf=(uint8_t*)&Position_Value;
-        // Velocity_buf=(uint8_t*)&Velocity_Value;
-        // Txbuf[0]=*(Position_buf);
-        // Txbuf[1]=*(Position_buf+1);
-        // Txbuf[2]=*(Position_buf+2);
-        // Txbuf[3]=*(Position_buf+3);
-        // Txbuf[4]=*(Velocity_buf+1);
-        // Txbuf[5]=*(Velocity_buf+2);
-        // Txbuf[6]=*(Velocity_buf+3);
-        // Txbuf[7]=*(Velocity_buf+4);
+        Position_buf=(uint8_t*)&Position_Value;
+        Velocity_buf=(uint8_t*)&Velocity_Value;
+        Txbuf[0]=*(Position_buf);
+        Txbuf[1]=*(Position_buf+1);
+        Txbuf[2]=*(Position_buf+2);
+        Txbuf[3]=*(Position_buf+3);
+        Txbuf[4]=*(Velocity_buf);
+        Txbuf[5]=*(Velocity_buf+1);
+        Txbuf[6]=*(Velocity_buf+2);
+        Txbuf[7]=*(Velocity_buf+3);
 
-        Txbuf[0]=Position_Value&0xff;
-        Txbuf[1]=(Position_Value>>8)&0xff;
-        Txbuf[2]=(Position_Value>>16)&0xff;
-        Txbuf[3]=(Position_Value>>24)&0xff;
-        Txbuf[4]=Velocity_Value;
-        Txbuf[5]=(Velocity_Value>>8)&0xff;
-        Txbuf[6]=(Velocity_Value>>16)&0xff;
-        Txbuf[7]=(Velocity_Value>>24)&0xff;
+        // Txbuf[0]=Position_Value&0xff;
+        // Txbuf[1]=(Position_Value>>8)&0xff;
+        // Txbuf[2]=(Position_Value>>16)&0xff;
+        // Txbuf[3]=(Position_Value>>24)&0xff;
+        // Txbuf[4]=Velocity_Value;
+        // Txbuf[5]=(Velocity_Value>>8)&0xff;
+        // Txbuf[6]=(Velocity_Value>>16)&0xff;
+        // Txbuf[7]=(Velocity_Value>>24)&0xff;
 
 
         HAL_CAN_AddTxMessage(hcan,&TX_header,Txbuf,&TxMAailBox);

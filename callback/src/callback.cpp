@@ -42,7 +42,7 @@ extern C620_driver C620_chassis_4;
 
 extern Class_Super_Cup Super_Cup;
 /*----------在gimbal.cpp文件中定义的变量----------*/
-extern GM6020_moter GM6020_pitch;
+extern DM4310_moter DM4310_pitch;
 extern GM6020_moter GM6020_yaw;
 extern uint8_t auto_aim_buf[];
 extern Class_Gimbal Gimbal;
@@ -192,7 +192,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 
 					}
           case 0x210:{
-						friction_right_back.Can_Data_processing(can_Rx_buf);
+						test_moter.Can_Data_processing(can_Rx_buf);
 						break;
 
 					}

@@ -84,7 +84,6 @@ public:
 
 
     Class_PID PID_yaw;
-    Class_PID PID_pitch;
 
     Class_PID PID_gyro;//用来表示底盘小陀螺的时候的角度的增量，用来避免误差
             
