@@ -200,7 +200,7 @@ void velocity_plan_s(float velocity,float *velocity_plan,float Delta_plus,float 
 /*高校联盟赛弹速规划*/
 void Bounce_speed_planning(void)
 {
-	if(Referee.Game_robot_status.shooter_id1_42mm_speed_limit == 10)//弹速限制
+	if(Referee.Game_robot_status.shooter_id1_42mm_speed_limit == 16)//弹速限制
 	{	
         Shoot_front.velocity = ERUPT_SHOOT_SPEED_FRONT;
 		Shoot_back.velocity = ERUPT_SHOOT_SPEED_BACK;//爆发优先	
