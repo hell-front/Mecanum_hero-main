@@ -6,7 +6,7 @@
 #include "Pan_Tilt_AHRS.h"
 #include "imu_mini.h"
 
-
+DM4310_motor test_motor(0x210);
 GM6020_moter GM6020_pitch(0x02,0.0f,0.0f,26.5f,-29.5f);
 GM6020_moter GM6020_yaw(0x01,5.0f,5.0f,0.0f,0.0f);
 
@@ -54,7 +54,7 @@ void Gimbal_init(){
         yaw_now=GM6020_yaw.get_location_real();
         
 
-        Gimbal.PID_pitch.PID_init(0.5f,0,0.0f/Gimbal_Tick);//表示的是用于自瞄的PID参数的初始化，理论上直接等于位置环的PID即可，如果不稳则可以通过该小参数来解决
+        //Gimbal.PID_pitch.PID_init(0.5f,0,0.0f/Gimbal_Tick);//表示的是用于自瞄的PID参数的初始化，理论上直接等于位置环的PID即可，如果不稳则可以通过该小参数来解决
         Gimbal.PID_yaw.PID_init(0.5f,0,0.0f/Gimbal_Tick);
         Gimbal.PID_gyro.PID_init(6.5f,0.00001,105.4f/Gimbal_Tick);//表示用于小陀螺计算的时候的pid
         
@@ -120,7 +120,7 @@ void Gimbal_resloution(){
         if(Gimbal.gimbal_auto==1){//表示是否开启了自动瞄准，开启了则要对云台两个电机的角度进行一个补偿
 
                 Gimbal.location_yaw+=0.001*Gimbal_Tick*Gimbal.PID_yaw.PID_absolute(0,-Gimbal.yaw_comp);//相对于当前位置去拟合，假定planed为当前位置以规避噪声
-                Gimbal.location_pitch+=0.001*Gimbal_Tick*Gimbal.PID_pitch.PID_absolute(0,Gimbal.pitch_comp);
+                //Gimbal.location_pitch+=0.001*Gimbal_Tick*Gimbal.PID_pitch.PID_absolute(0,Gimbal.pitch_comp);
 
         }
 

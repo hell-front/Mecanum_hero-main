@@ -35,7 +35,7 @@ rt_sem_t sem_can_Tx_full;
 rt_sem_t sem_mini_pc;
 
 
-DM4310_moter test_moter;
+extern DM4310_motor  test_motor;
 
 
 extern CAN_HandleTypeDef hcan1;
@@ -204,22 +204,31 @@ void Task_Init(void *parameter){
 
 void Task_test_motor(void *parameter)
 {
-
+    int i;
     while(1)
     {
 
         DM4310_motor test_motor(0x10,0);
+
+        Send_Data_DM_Contral(&hcan2,0x210,1);
+
+        if (test_motor.state>=8)
+        {
+            Send_Data_DM_Contral(&hcan2,0x210,3);
+        }
+        
         for (i=0;i<=10;i++)
         {
             Send_Data_DM(&hcan2,0x210,i,5);
-            rt_thread_delay(1000);
+            rt_thread_delay(300);
         }
-         for (i=10;i>=10;i--)
+         for (i=10;i>=0;i--)
         {
             Send_Data_DM(&hcan2,0x210,i,5);
-            rt_thread_delay(1000);
+            rt_thread_delay(300);
         }
 
+        Send_Data_DM_Contral(&hcan2,0x210,0);
 
 
         // Shoot_resolution();
@@ -433,7 +442,8 @@ void Task_SerialPlot(void *parameter){
 //            temp9 = -Imu_mini.Angle_Yaw_real-Chassis.angle_init;
 
             temp1 = test_motor.velocity_real;
-            temp2 = test_motor.velocity_real;
+            temp2 = test_motor.position_real;
+            temp3 = test_motor.CAN_update;
 
             memcpy(rx_buf+1,&temp1,4);
             memcpy(rx_buf+5,&temp2,4);

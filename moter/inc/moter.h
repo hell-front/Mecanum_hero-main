@@ -18,6 +18,7 @@ extern "C"{                      //-----------��׼д��-----------
 
 void Send_Data_Dj(CAN_HandleTypeDef *hcan,uint16_t ID,int16_t Control_value1=0,int16_t Control_value2=0,int16_t Control_value3=0,int16_t Control_value4=0);
 void Send_Data_DM(CAN_HandleTypeDef *hcan,uint16_t CAN_ID , float Position_Value , float Velocity_Value);
+void Send_Data_DM_Contral(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , int mode);
 
 
 float Mode_Long(float a,float b);
