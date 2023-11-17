@@ -21,8 +21,8 @@ C620_driver friction_right_back(0x07,1);
 //struct  shoot_move shoot={1};
 
 
-Class_Shoot Shoot_front(1,SPEED_SHOOT_SPEED_FRONT);
-Class_Shoot Shoot_back(1,SPEED_SHOOT_SPEED_BACK);
+Class_Shoot Shoot_front(1,ERUPT_SHOOT_SPEED_FRONT);
+Class_Shoot Shoot_back(1,ERUPT_SHOOT_SPEED_BACK);
 
 
 extern Referee_System Referee;

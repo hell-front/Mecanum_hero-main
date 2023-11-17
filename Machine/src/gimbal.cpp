@@ -6,8 +6,7 @@
 #include "Pan_Tilt_AHRS.h"
 #include "imu_mini.h"
 
-DM4310_motor test_motor(0x210);
-GM6020_moter GM6020_pitch(0x02,0.0f,0.0f,26.5f,-29.5f);
+DM4310_motor DM4310_pitch(0x10);
 GM6020_moter GM6020_yaw(0x01,5.0f,5.0f,0.0f,0.0f);
 
 extern Class_Chassis Chassis;

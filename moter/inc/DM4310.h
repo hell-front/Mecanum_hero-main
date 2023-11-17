@@ -13,6 +13,11 @@ extern "C"{
 #define   VELOCITY_MIN -45.0
 #define   TORQUE_MAX 18.0
 #define   TORQUE_MIN -18.0
+#define   KP_MAX 500.0
+#define   KP_MIN 0.0
+#define   KD_MAX 5.0
+#define   KD_MIN 0.0
+
 
 float   uint_to_float(int x_int, float x_min, float x_max, int bits);
 //计算接收到的数据

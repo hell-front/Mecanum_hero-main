@@ -204,34 +204,34 @@ void Task_Init(void *parameter){
 
 void Task_test_motor(void *parameter)
 {
-    int i;
+    float i;
+    DM4310_motor test_motor(0x10,0);//达妙4310测试程序
+     if (test_motor.state>=8)
+    {
+        Send_Data_DM_Control(&hcan2,0x210,3,0);//清除错误信号
+        rt_thread_delay(20);//发出控制信息之后需要一定的处理时间
+    }
+        
+    Send_Data_DM_Control(&hcan2,0x210,1,0);   
+    rt_thread_delay(20);//发出控制信息之后需要一定的处理时间
+
     while(1)
     {
-
-        DM4310_motor test_motor(0x10,0);
-
-        Send_Data_DM_Contral(&hcan2,0x210,1);
-
-        if (test_motor.state>=8)
-        {
-            Send_Data_DM_Contral(&hcan2,0x210,3);
-        }
-        
-        for (i=0;i<=10;i++)
-        {
-            Send_Data_DM(&hcan2,0x210,i,5);
-            rt_thread_delay(300);
-        }
-         for (i=10;i>=0;i--)
-        {
-            Send_Data_DM(&hcan2,0x210,i,5);
-            rt_thread_delay(300);
-        }
-
-        Send_Data_DM_Contral(&hcan2,0x210,0);
+        // for (i=0.14*PI;i<=0.42*PI;i=i+0.02*PI)//云台pitch轴的转动角度暂时定为0.15rad到0.42rad
+        // {
+        //     Send_Data_DM_Mit(&hcan2,0x210,i,1.5f,10.0,0.2,1.0);
+        //     rt_thread_delay(100);
+        // }
+        //  for (i=0.42*PI;i>=0.12*PI;i=i-0.02*PI)
+        // {
+        //     Send_Data_DM_Mit(&hcan2,0x210,i,1.5f,10.0,0.2,1.0);
+        //     rt_thread_delay(100);
+        // }
+        //Send_Data_DM_Mit(&hcan2,0x210,0.15,1.5f,10.0,0.2,1.0);
+        rt_thread_delay(300);
 
 
-        // Shoot_resolution();
+        // Shoot_resolution();//发射装置测试程序
         // Shoot_PID();
         // rt_sem_take(sem_can_Tx_full,0x01);
         // Send_Data_Dj(&hcan2,0x200,0,C620_plate.current_target,friction_right_front.current_target,friction_left_front.current_target);

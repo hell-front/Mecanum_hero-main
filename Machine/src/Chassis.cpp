@@ -405,7 +405,8 @@ data[2]=(int)bridge data.chassis power*100>>8;
 data[l3]=bridge data.chassis power*100:
 data[0]=(int) (0.5*8,75*bridge data,cap voltage*bridge data,cap voltage)>>8;
 datall]=(int)(0.5*875bridge datacap voltagekbridge data.cap voltage):*/
-void Class_Super_Cup::Can_Data_processing(uint8_t buf[]){
+void Class_Super_Cup::Can_Data_processing(uint8_t buf[])
+{
     int16_t TEMP1;
     int16_t TEMP2;
     TEMP1=(int16_t)((buf[0]<<8)|buf[1]);

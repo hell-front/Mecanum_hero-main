@@ -12,14 +12,14 @@ extern "C"{                      //-----------��׼д��-----------
 #include "wheel.h"
 #include "math.h"
 
-#define PI 3.1415926f
+#define PI 3.1416f
 
 
 
 void Send_Data_Dj(CAN_HandleTypeDef *hcan,uint16_t ID,int16_t Control_value1=0,int16_t Control_value2=0,int16_t Control_value3=0,int16_t Control_value4=0);
-void Send_Data_DM(CAN_HandleTypeDef *hcan,uint16_t CAN_ID , float Position_Value , float Velocity_Value);
-void Send_Data_DM_Contral(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , int mode);
-
+void Send_Data_DM_PV(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , float Position_Value , float Velocity_Value);
+void Send_Data_DM_Control(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , int Mode , int Control_Mode);
+void Send_Data_DM_Mit(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , float Position_Value,float Velocity_Value,float KP_Value,float KD_Value,float Torque_Value);
 
 float Mode_Long(float a,float b);
 
