@@ -6,6 +6,7 @@ extern "C"{
 #endif
 
 #include "main.h"
+#include "PID.h"
 
 #define   POSITION_MAX 12.5
 #define   POSITION_MIN -12.5
@@ -42,8 +43,13 @@ class DM4310_motor
     float   position_real;
     float   Temperaturemos;
     float   Temperaturecoil;
+    float   position_zero
     
     void    Can_Data_processing(uint8_t buf[]);
+
+
+    Class_PID location_PID;
+    Class_PID velocity_PID;
     
 };
 

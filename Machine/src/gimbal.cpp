@@ -5,9 +5,10 @@
 #include"imu_mini.h"
 #include "Pan_Tilt_AHRS.h"
 #include "imu_mini.h"
-
-DM4310_motor DM4310_pitch(0x10);
-GM6020_moter GM6020_yaw(0x01,5.0f,5.0f,0.0f,0.0f);
+DM4310_motor DM4310_pitch(0x10,0.0f);
+DM4310_motor DM6006_yaw(0x10,0.0f);
+// GM6020_moter GM6020_pitch(0x10,1,0,1,0);
+// GM6020_moter GM6020_yaw(0x01,5.0f,5.0f,0.0f,0.0f);
 
 extern Class_Chassis Chassis;
 
@@ -50,7 +51,7 @@ void Gimbal_init(){
 
 
         float yaw_now;
-        yaw_now=GM6020_yaw.get_location_real();
+        yaw_now=DM6006_yaw.position_real;
         
 
         //Gimbal.PID_pitch.PID_init(0.5f,0,0.0f/Gimbal_Tick);//表示的是用于自瞄的PID参数的初始化，理论上直接等于位置环的PID即可，如果不稳则可以通过该小参数来解决
@@ -59,41 +60,44 @@ void Gimbal_init(){
         
 
         
-        GM6020_yaw.location_PID.PID_init(20.5,0,10.0f/Gimbal_Tick);
-        GM6020_yaw.location_PID.PID_differ_filter_init(0.3f);
-        GM6020_yaw.location_PID.PID_anti_integ_saturated_init(1440.0f,-1440.0f);
+        DM6006_yaw.location_PID.PID_init(20.5,0,10.0f/Gimbal_Tick);
+        DM6006_yaw.location_PID.PID_differ_filter_init(0.3f);
+        DM6006_yaw.location_PID.PID_anti_integ_saturated_init(1440.0f,-1440.0f);
 
-        GM6020_yaw.velocity_PID.PID_init(1.0f*1000*PI/18.0f,5.5f*PI*Gimbal_Tick/18.0f,4000.0f*PI/(54.0f*Gimbal_Tick));
-        GM6020_yaw.velocity_PID.PID_differ_filter_init(0.3f);
-        GM6020_yaw.velocity_PID.PID_anti_integ_saturated_init(30000,-30000);
+        DM6006_yaw.velocity_PID.PID_init(1.0f*1000*PI/18.0f,5.5f*PI*Gimbal_Tick/18.0f,4000.0f*PI/(54.0f*Gimbal_Tick));
+        DM6006_yaw.velocity_PID.PID_differ_filter_init(0.3f);
+        DM6006_yaw.velocity_PID.PID_anti_integ_saturated_init(30000,-30000);
 
-        GM6020_yaw.current_PID.PID_init(0.70f,0.080f*Gimbal_Tick,0);
-        GM6020_yaw.current_PID.PID_anti_integ_saturated_init(16000,-16000);
-
-
+        // GM6020_yaw.current_PID.PID_init(0.70f,0.080f*Gimbal_Tick,0);
+        // GM6020_yaw.current_PID.PID_anti_integ_saturated_init(16000,-16000);
 
 
-        GM6020_pitch.location_PID.PID_init(18,0,40.0f/Gimbal_Tick);
-        GM6020_pitch.location_PID.PID_differ_filter_init(0.3f);
-        GM6020_pitch.location_PID.PID_anti_integ_saturated_init(360.0f,-360.0f);
 
-        GM6020_pitch.velocity_PID.PID_init(1600.0f*PI/18.0f,3.3f*PI*Gimbal_Tick/18.0f,4000.0f*PI/(54.0f*Gimbal_Tick));
-        GM6020_pitch.velocity_PID.PID_differ_filter_init(0.3f);
-        GM6020_pitch.velocity_PID.PID_anti_integ_saturated_init(30000,-30000);
 
-        GM6020_pitch.current_PID.PID_init(0.70f,0.080f*Gimbal_Tick,0);
-        GM6020_pitch.current_PID.PID_anti_integ_saturated_init(30000,-30000);
+        DM4310_pitch.location_PID.PID_init(18,0,40.0f/Gimbal_Tick);
+        DM4310_pitch.location_PID.PID_differ_filter_init(0.3f);
+        DM4310_pitch.location_PID.PID_anti_integ_saturated_init(360.0f,-360.0f);
 
-        if(GM6020_yaw.get_location_real()>185.0f){
-                GM6020_yaw.location_zero=365.0f;
+        DM4310_pitch.velocity_PID.PID_init(1600.0f*PI/18.0f,3.3f*PI*Gimbal_Tick/18.0f,4000.0f*PI/(54.0f*Gimbal_Tick));
+        DM4310_pitch.velocity_PID.PID_differ_filter_init(0.3f);
+        DM4310_pitch.velocity_PID.PID_anti_integ_saturated_init(30000,-30000);
+
+        // GM6020_pitch.current_PID.PID_init(0.70f,0.080f*Gimbal_Tick,0);
+        // GM6020_pitch.current_PID.PID_anti_integ_saturated_init(30000,-30000);
+
+        if(DM6006_yaw.position_real>185.0f){
+                DM6006_yaw.position_zero=365.0f;
         }
-        if(GM6020_pitch.get_location_real()>180.0f){
-                GM6020_pitch.location_zero=360.0f;
+        // if(GM6020_pitch.get_location_real()>180.0f){
+        //         GM6020_pitch.location_zero=360.0f;
+        // }
+        if(DM4310_pitch.position_real>180.0f){
+                DM4310_pitch.position_zero=360.0f;
         }
 
 
-        Gimbal.pitch_planned=GM6020_pitch.get_location_real()-GM6020_pitch.location_zero;
-        Gimbal.yaw_planned=GM6020_yaw.get_location_real()-GM6020_yaw.location_zero;
+        Gimbal.pitch_planned=DM4310_pitch.position_real-DM4310_pitch.position_zero;
+        Gimbal.yaw_planned=DM6006_yaw.position_real-DM6006_yaw.position_zero;
 
 }
 
@@ -106,7 +110,7 @@ void Gimbal_resloution(){
 
         
 
-        Gimbal.yaw_real=fmodf(GM6020_yaw.get_location_real()-GM6020_yaw.location_zero,360.0f);//表示的是此时的云台相对电机的转动角度
+        Gimbal.yaw_real=fmodf(DM6006_yaw.position_real-DM6006_yaw.position_real,360.0f);//表示的是此时的云台相对电机的转动角度
         if(Gimbal.yaw_real>180.0f&&Gimbal.yaw_real<360.0f){//表示的是将角度转换为-180度到180度的区间内
                 Gimbal.yaw_real-=360.0f;
         }else if (Gimbal.yaw_real<-180.0f&&Gimbal.yaw_real>-360.0f)
@@ -191,7 +195,7 @@ void Gimbal_resloution(){
 
         Gimbal.gimbal_auto_last=Gimbal.gimbal_auto;//表示的是上一次的云台状态的值
 
-        GM6020_pitch.location_target=Gimbal.pitch_planned+GM6020_pitch.location_zero;
+        DM4310_pitch.position_target=Gimbal.pitch_planned+DM4310_pitch.position_zero;
         GM6020_yaw.location_target=Gimbal.yaw_planned+GM6020_yaw.location_zero;
 
 
@@ -217,50 +221,50 @@ void Gimbal_PID(){
         uint8_t chassis_gryo=Chassis.state;
         static uint8_t chassis_gryo_last=chassis_gryo;//该变量存储的是上一时刻底盘是否进入了小陀螺状态，和这次对比用以清除Yaw的PID参数
         if(chassis_gryo!=chassis_gryo_last){
-                GM6020_yaw.location_PID.PID_clear();
+                DM6006_yaw.location_PID.PID_clear();
                 if(chassis_gryo==3){//表示这时候进入底盘进入了小陀螺状态，PID参数换成进入小陀螺状态的参数
-                        GM6020_yaw.location_PID.PID_init(8.5,0,60.0f/Gimbal_Tick);//该参数可能要进行修改   
+                        DM6006_yaw.location_PID.PID_init(8.5,0,60.0f/Gimbal_Tick);//该参数可能要进行修改   
                 }else{//表示底盘此时不在小陀螺状态，参数要换成不是小陀螺状态的参数
-                        GM6020_yaw.location_PID.PID_init(8.5,0,60.0f/Gimbal_Tick);  
+                        DM6006_yaw.location_PID.PID_init(8.5,0,60.0f/Gimbal_Tick);  
                 }
         }
         chassis_gryo_last=chassis_gryo;
 
 
-        //GM6020_pitch.velocity_target=GM6020_pitch.location_PID.PID_differ_filter_anti_saturated(GM6020_pitch.location_target,GM6020_pitch.get_location_real());
-        //if(Chassis.state==state_gyro||Chassis.zeroing_state){//表示的是进入了小陀螺状态或者是进入归零模式
-                //GM6020_yaw.velocity_target=GM6020_yaw.location_PID.PID_differ_filter_anti_saturated(GM6020_yaw.location_target,GM6020_yaw.get_location_real());
+        // GM6020_pitch.velocity_target=GM6020_pitch.location_PID.PID_differ_filter_anti_saturated(GM6020_pitch.location_target,GM6020_pitch.get_location_real());
+        // if(Chassis.state==state_gyro||Chassis.zeroing_state){//表示的是进入了小陀螺状态或者是进入归零模式
+        //         GM6020_yaw.velocity_target=GM6020_yaw.location_PID.PID_differ_filter_anti_saturated(GM6020_yaw.location_target,GM6020_yaw.get_location_real());
         //        GM6020_yaw.velocity_target=-1.1f*57.2957805f*Imu_mini.Yaw_speed_real+GM6020_yaw.location_PID.PID_differ_filter_anti_saturated(GM6020_yaw.location_target,GM6020_yaw.get_location_real());
-                //第二个函数表示的是加上前馈控制的函数，可能要重新计算PID
-        //}else{//表示的是没有进入小陀螺状态
+        //         第二个函数表示的是加上前馈控制的函数，可能要重新计算PID
+        // }else{//表示的是没有进入小陀螺状态
         //        GM6020_yaw.velocity_target=GM6020_yaw.location_PID.PID_differ_filter_anti_saturated(GM6020_yaw.location_target,GM6020_yaw.get_location_real());
-        //}
+        // }
         if(Chassis.state!=chassis_gryo&&Gimbal.gimbal_auto==0){//表示没有进入小陀螺状态也没有进入自瞄状态
-                GM6020_yaw.velocity_target=GM6020_yaw.location_PID.PID_differ_filter_anti_saturated(GM6020_yaw.location_target,GM6020_yaw.get_location_real());
-                GM6020_pitch.velocity_target=GM6020_pitch.location_PID.PID_differ_filter_anti_saturated(GM6020_pitch.location_target,GM6020_pitch.get_location_real());
+                DM6006_yaw.velocity_target=DM6006_yaw.location_PID.PID_differ_filter_anti_saturated(DM6006_yaw.position_target,DM6006_yaw.position_real);
+                DM4310_pitch.velocity_target=DM4310_pitch.location_PID.PID_differ_filter_anti_saturated(DM4310_pitch.position_target,DM4310_pitch.position_real);
         }else if(Chassis.state==chassis_gryo&&Gimbal.gimbal_auto==0){//表示进入了小陀螺状态但是没有进入自瞄状态
-                GM6020_yaw.velocity_target=-57.2957805f*Imu_mini.Yaw_speed_real+GM6020_yaw.location_PID.PID_differ_filter_anti_saturated(GM6020_yaw.location_target,GM6020_yaw.get_location_real());
-                GM6020_pitch.velocity_target=GM6020_pitch.location_PID.PID_differ_filter_anti_saturated(GM6020_pitch.location_target,GM6020_pitch.get_location_real());
+                DM6006_yaw.velocity_target=-57.2957805f*Imu_mini.Yaw_speed_real+DM6006_yaw.location_PID.PID_differ_filter_anti_saturated(DM6006_yaw.position_target,DM6006_yaw.position_real);
+                DM4310_pitch.velocity_target=DM4310_pitch.location_PID.PID_differ_filter_anti_saturated(DM4310_pitch.position_target,DM4310_pitch.position_real);
         }else if(Chassis.state!=chassis_gryo&&Gimbal.gimbal_auto){//表示没有进入小陀螺但是进入了自瞄状态
-                GM6020_yaw.velocity_target=-Gimbal.Predicted_Velocity_Yaw/100.0f+GM6020_yaw.location_PID.PID_differ_filter_anti_saturated(GM6020_yaw.location_target,GM6020_yaw.get_location_real());
-                GM6020_pitch.velocity_target=Gimbal.Predicted_Velocity_Pitch/100.0f+GM6020_pitch.location_PID.PID_differ_filter_anti_saturated(GM6020_pitch.location_target,GM6020_pitch.get_location_real());
+                DM6006_yaw.velocity_target=-Gimbal.Predicted_Velocity_Yaw/100.0f+DM6006_yaw.location_PID.PID_differ_filter_anti_saturated(DM6006_yaw.position_target,DM6006_yaw.position_real);
+                DM4310_pitch.velocity_target=Gimbal.Predicted_Velocity_Pitch/100.0f+DM4310_pitch.location_PID.PID_differ_filter_anti_saturated(DM4310_pitch.position_target,DM4310_pitch.position_real);
         }else{//表示进入了进入了小陀螺也进入了自瞄状态
-                GM6020_yaw.velocity_target=-Gimbal.Predicted_Velocity_Yaw/100.0f-57.2957805f*Imu_mini.Yaw_speed_real+GM6020_yaw.location_PID.PID_differ_filter_anti_saturated(GM6020_yaw.location_target,GM6020_yaw.get_location_real());
-                GM6020_pitch.velocity_target=Gimbal.Predicted_Velocity_Pitch/100.0f+GM6020_pitch.location_PID.PID_differ_filter_anti_saturated(GM6020_pitch.location_target,GM6020_pitch.get_location_real());
+                DM6006_yaw.velocity_target=-Gimbal.Predicted_Velocity_Yaw/100.0f-57.2957805f*Imu_mini.Yaw_speed_real+DM6006_yaw.location_PID.PID_differ_filter_anti_saturated(DM6006_yaw.position_target,DM6006_yaw.position_real);
+                DM4310_pitch.velocity_target=Gimbal.Predicted_Velocity_Pitch/100.0f+DM4310_pitch.location_PID.PID_differ_filter_anti_saturated(DM4310_pitch.position_target,DM4310_pitch.position_real);
         }
 
 
 
-        //GM6020_pitch.current_target=GM6020_pitch.velocity_PID.PID_differ_filter_anti_saturated(GM6020_pitch.velocity_target,GM6020_pitch.get_velocity_real()) + PITCH_BALANCE_CURRENT;
-        // GM6020_pitch.current_target=GM6020_pitch.velocity_PID.PID_differ_filter_anti_saturated(GM6020_pitch.velocity_target,GM6020_pitch.get_velocity_real());
-        //根据陀螺仪的安装方式，pitch轴对应的是陀螺仪的yaw
-        GM6020_pitch.current_target=GM6020_pitch.velocity_PID.PID_differ_filter_anti_saturated(GM6020_pitch.velocity_target,Pan_Tilt_AHRS.GetYawOmega());
-        // GM6020_yaw.current_target=GM6020_yaw.velocity_PID.PID_differ_filter_anti_saturated(GM6020_yaw.velocity_target,GM6020_yaw.get_velocity_real());
-        GM6020_yaw.current_target=GM6020_yaw.velocity_PID.PID_differ_filter_anti_saturated(GM6020_yaw.velocity_target,-Pan_Tilt_AHRS.GetPitchOmega()  - Imu_mini.Yaw_speed_real * 180 / PI);
+        // //GM6020_pitch.current_target=GM6020_pitch.velocity_PID.PID_differ_filter_anti_saturated(GM6020_pitch.velocity_target,GM6020_pitch.get_velocity_real()) + PITCH_BALANCE_CURRENT;
+        // // GM6020_pitch.current_target=GM6020_pitch.velocity_PID.PID_differ_filter_anti_saturated(GM6020_pitch.velocity_target,GM6020_pitch.get_velocity_real());
+        // //根据陀螺仪的安装方式，pitch轴对应的是陀螺仪的yaw
+        // GM6020_pitch.current_target=GM6020_pitch.velocity_PID.PID_differ_filter_anti_saturated(GM6020_pitch.velocity_target,Pan_Tilt_AHRS.GetYawOmega());
+        // // GM6020_yaw.current_target=GM6020_yaw.velocity_PID.PID_differ_filter_anti_saturated(GM6020_yaw.velocity_target,GM6020_yaw.get_velocity_real());
+        // GM6020_yaw.current_target=GM6020_yaw.velocity_PID.PID_differ_filter_anti_saturated(GM6020_yaw.velocity_target,-Pan_Tilt_AHRS.GetPitchOmega()  - Imu_mini.Yaw_speed_real * 180 / PI);
         
-        GM6020_yaw.voltage = 0;
-        GM6020_pitch.voltage=GM6020_pitch.current_PID.PID_anti_integral_saturated(GM6020_pitch.current_target,GM6020_pitch.get_current_real());
-        GM6020_yaw.voltage=GM6020_yaw.current_PID.PID_anti_integral_saturated(GM6020_yaw.current_target,GM6020_yaw.get_current_real());
+        // GM6020_yaw.voltage = 0;
+        // GM6020_pitch.voltage=GM6020_pitch.current_PID.PID_anti_integral_saturated(GM6020_pitch.current_target,GM6020_pitch.get_current_real());
+        // GM6020_yaw.voltage=GM6020_yaw.current_PID.PID_anti_integral_saturated(GM6020_yaw.current_target,GM6020_yaw.get_current_real());
         
 }
 

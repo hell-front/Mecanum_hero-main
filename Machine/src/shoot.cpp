@@ -205,11 +205,7 @@ void Bounce_speed_planning(void)
         Shoot_front.velocity = ERUPT_SHOOT_SPEED_FRONT;
 		Shoot_back.velocity = ERUPT_SHOOT_SPEED_BACK;//爆发优先	
 	}
-	else if(Referee.Game_robot_status.shooter_id1_42mm_speed_limit == 16)
-	{
-        Shoot_front.velocity = SPEED_SHOOT_SPEED_FRONT;
-		Shoot_back.velocity = SPEED_SHOOT_SPEED_BACK;//弹速优先
-	}
+
     else //低保
     {
         Shoot_front.velocity = ERUPT_SHOOT_SPEED_FRONT;

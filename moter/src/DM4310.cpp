@@ -6,13 +6,14 @@ DM4310_motor::DM4310_motor(uint8_t ID,float LOCATION)
 {
         CAN_ID=ID;
         position_real=LOCATION;
-        velocity_target=10;
+        velocity_target=0;
         position_real=0;
+        position_zero=0;
         velocity_real=0;
         torque_real=0;
         CAN_update=0;
-        Temperaturemos = 0;
-        Temperaturecoil = 0;
+        Temperaturemos=0;
+        Temperaturecoil=0;
 }
 
 void DM4310_motor::Can_Data_processing(uint8_t buf[])
@@ -27,6 +28,7 @@ void DM4310_motor::Can_Data_processing(uint8_t buf[])
         Temperaturecoil = buf[7];
 
         position_real = uint_to_float(position_real,POSITION_MIN,POSITION_MAX,16);// (-12.5,12.5)
+        position_real = position_real*180.0f/PI;// (-716.2,716.2)
         velocity_real = uint_to_float(velocity_real,VELOCITY_MIN,VELOCITY_MAX,12);// (-45.0,45.0)
         torque_real = uint_to_float(torque_real,TORQUE_MIN,TORQUE_MAX,12);// (-18.0,18.0)
 
