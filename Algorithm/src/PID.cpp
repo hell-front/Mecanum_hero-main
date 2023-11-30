@@ -261,18 +261,25 @@ float Class_PID::PID_differ_advanced_anti_saturated(float value_target,float val
 float Class_PID::PID_differ_filter_anti_saturated(float value_target,float value_real){
         error_now=value_target-value_real;
         if(Result>Result_MAX){
-            if(error_now>0){
-
-            }else{
+            if(error_now>0)
+            {
+            }
+            else
+            {
                 error_integral+=error_now;
             }
-        }else if(Result<Result_MIN){
-            if(error_now<0){
+        }else if(Result<Result_MIN)
+        {
+            if(error_now<0)
+            {
 
-            }else{
+            }
+            else
+            {
                 error_integral+=error_now;
             }
-        }else{
+        }else
+        {
                 error_integral+=error_now;
         }
         
@@ -282,11 +289,16 @@ float Class_PID::PID_differ_filter_anti_saturated(float value_target,float value
         Result=Kp*error_now+Ki*error_integral+Kd*error_differ;
         error_past=error_now;
         error_differ_last=error_differ;
-        if(Result>Result_MAX){
+        if(Result>Result_MAX)
+        {
             return Result_MAX;
-        }else if(Result<Result_MIN){
+        }
+        else if(Result<Result_MIN)
+        {
             return Result_MIN;
-        }else{
+        }
+        else
+        {
             return Result;
         }
 

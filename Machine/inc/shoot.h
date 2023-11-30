@@ -47,11 +47,11 @@ public:
     float Delta_vel_shoot_minus;
     float velocity;//摩擦轮的预期速度
     float velocity_planned;//摩擦轮转速规划
-    float plate_location;//拨盘预期的位置
-    float plate_location_plan;//拨盘规划的位置，防止速度过快
-    float plate_locked;//表示plate是否发生了堵转，如果发生了堵转，则为1，如果没有，则为0
-	uint16_t Locked_time;//堵转时间
-	uint16_t Jamming_slove_time;//解决堵转时间
+    float plate_location;//拨盘预期的位置，以后轮为标准
+    float plate_location_plan;//拨盘规划的位置，防止速度过快，以后轮为标准
+    float plate_locked;//表示plate是否发生了堵转，如果发生了堵转，则为1，如果没有，则为0，以后轮为标准
+	uint16_t Locked_time;//堵转时间，以后轮为标准
+	uint16_t Jamming_slove_time;//解决堵转时间，以后轮为标准
 };
 
 

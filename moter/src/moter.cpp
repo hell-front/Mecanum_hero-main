@@ -34,11 +34,11 @@ void Send_Data_Dj(CAN_HandleTypeDef *hcan,uint16_t ID,int16_t Control_value1,int
 
 
 void Send_Data_DM_PV(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , float angle , float Velocity_Value)
-{//position的取值范围是正负12.5，velocity的取值范围是正负45
+{//position的取值范围是正负12.5，velocity的取值范围是正负45/PI*180.0f，即2578.3
 //其中CAN的ID为配置电机的ID，后两项分别为位置的取值，以及速度的限制
 //角度值进行换算,angle对应的是电机实际的角度值，
 // “取值的范围是目前是20度到90度”
-// position为对应的弧度值
+//由于角度换算，角速度也进行换算
     CAN_TxHeaderTypeDef TX_header;
     uint8_t Txbuf[8];
     uint32_t TxMAailBox;
@@ -57,6 +57,7 @@ void Send_Data_DM_PV(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , float angle 
     if(angle<20)angle = 20;
 
     Position_Value = angle*PI/180.0;
+    Velocity_Value = Velocity_Value*PI/180.0;
 
     Position_buf=(uint8_t*)&Position_Value;
     Velocity_buf=(uint8_t*)&Velocity_Value;
@@ -74,9 +75,9 @@ void Send_Data_DM_PV(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , float angle 
 }
 
 void Send_Data_DM_V(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , float Velocity_Value)
-{//velocity的取值范围是正负45
+{//velocity的取值范围是正负45/PI*180.0f，即2578.3
 //其中CAN的ID为配置电机的ID，后两项分别为位置的取值，以及速度的限制
-
+//由于角度换算，角速度也进行换算
     CAN_TxHeaderTypeDef TX_header;
     uint8_t Txbuf[4];
     uint32_t TxMAailBox;
@@ -87,6 +88,8 @@ void Send_Data_DM_V(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , float Velocit
     TX_header.StdId=REAL_CAN_ID+0x200;
     TX_header.IDE=CAN_ID_STD;
     TX_header.RTR=CAN_RTR_DATA;
+
+    Velocity_Value = Velocity_Value*PI/180.0;
 
     Velocity_buf=(uint8_t*)&Velocity_Value;
     Txbuf[0]=*(Velocity_buf);
@@ -99,11 +102,12 @@ void Send_Data_DM_V(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , float Velocit
 }
 
 void Send_Data_DM_Mit(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , float angle , float Velocity_Value,float KP_Value, float KD_Value, float Torque_Value)
-{//position的取值范围是正负12.5(理论上)，velocity的取值范围是正负45(理论上)
+{
+//position的取值范围是正负12.5(理论上)，velocity的取值范围是正负45/PI*180.0f，即2578.3
 //其中CAN的ID为配置电机的ID，后两项分别为位置的取值，以及速度的限制
 //角度值进行换算,angle对应的是电机实际的角度值，
 // “取值的范围是目前是20度到95度”
-// position为对应的弧度值
+//由于角度换算，角速度也进行换算
     CAN_TxHeaderTypeDef TX_header;
     uint8_t Txbuf[8];
     uint32_t TxMAailBox;
@@ -117,13 +121,14 @@ void Send_Data_DM_Mit(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , float angle
 
     float Position_Value;
 
-    // if(angle>100)angle = 90;
-    // if(angle<20)angle = 20;
+    if(angle>100)angle = 70;
+    if(angle<20)angle = 35;
 
     Position_Value = angle*PI/180.0;
+    Velocity_Value = Velocity_Value*PI/180.0;
 
     uint16_t pos_tmp,vel_tmp,kp_tmp,kd_tmp,tor_tmp;
-    pos_tmp = float_to_uint(Position_Value, POSITION_MIN, POSITION_MAX, 16);
+    pos_tmp = float_to_uint(Position_Value, LOCATION_MIN, LOCATION_MAX, 16);
     vel_tmp = float_to_uint(Velocity_Value, VELOCITY_MIN, VELOCITY_MAX, 12);
     kp_tmp = float_to_uint(KP_Value, KP_MIN, KP_MAX, 12);
     kd_tmp = float_to_uint(KD_Value, KD_MIN, KD_MAX, 12);
@@ -154,8 +159,7 @@ void Send_Data_DM_Mit(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , float angle
 }
 
 void Send_Data_DM_Control(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , int Mode , int Control_Mode)
-{//mode为1时，将使能电机，mode为0时，将失能电机，mode为2时，将保存位置零点，mode为3时，将清除错误（例如过热）
-//Control_Mode为0时，mit模式;为1时，位置速度模式，2:速度模式
+{
     CAN_TxHeaderTypeDef TX_header;
     uint8_t Txbuf[8];
     uint32_t TxMAailBox;

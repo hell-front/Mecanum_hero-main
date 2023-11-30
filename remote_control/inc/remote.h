@@ -19,20 +19,20 @@ extern "C"{                      //-----------��׼д��-----------
 #define MOUSE_GAIN_YAW  (0.03f)
 #define MOUSE_GAIN_PITCH (0.01f)
 
-#define Remote_Switch_Left1   (1u)//从上往下数挡位依次为123
-#define Remote_Switch_Left2   (3u)
-#define Remote_Switch_Left3   (2u)
+#define Remote_Switch_Left1   (1u)//OFF档位 从上往下数挡位依次为123
+#define Remote_Switch_Left2   (3u)//CL档位 从上往下数挡位依次为123
+#define Remote_Switch_Left3   (2u)//HL档位 从上往下数挡位依次为123
 
-#define Remote_Switch_Right1  (1u)
-#define Remote_Switch_Right2  (3u)
-#define Remote_Switch_Right3  (2u)
-
-
+#define Remote_Switch_Right1  (1u)//GPS档位 从上往下数挡位依次为123
+#define Remote_Switch_Right2  (3u)//ATTI档位 从上往下数挡位依次为123
+#define Remote_Switch_Right3  (2u)//ATTI档位 从上往下数挡位依次为123
 
 
 
-#define Chassis_v_x_max   (3300)
-#define Chassis_v_y_max   (3300)
+
+
+#define Chassis_v_x_max   (3300)//x方向速度最大值
+#define Chassis_v_y_max   (3300)//y方向速度最大值
 #define Chassis_v_omega_max   (10000) //小陀螺模式的自转速度
 
 class Class_Remote_data

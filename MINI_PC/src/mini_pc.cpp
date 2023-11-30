@@ -25,8 +25,8 @@
 extern UART_HandleTypeDef huart3;
 extern Class_Gimbal Gimbal;
 extern Class_imu_mini Imu_mini;
-extern GM6020_moter GM6020_pitch;
-extern GM6020_moter GM6020_yaw;
+extern DM_motor DM4310_pitch;
+extern DM_motor DM6006_yaw;
 extern Referee_System Referee;
 /* Private function declarations ---------------------------------------------*/
 
@@ -82,10 +82,10 @@ void Class_Mini_pc::Data_processing_to_minipc(void)
     memcpy(Mini_pc_tx_buf+2,&vx,4);
     vy = Gimbal.velocity_pitch;
     memcpy(Mini_pc_tx_buf+6,&vy,4);
-    pitch = (GM6020_pitch.get_location_real() - GM6020_pitch.location_zero);
+    pitch = (DM4310_pitch.location_real - DM4310_pitch.location_zero);
     memcpy(Mini_pc_tx_buf+10,&pitch,4);
     //TODO: Imu_mini.Angle_Yaw_real 调整正负号
-    yaw = -(GM6020_yaw.get_location_real() - GM6020_yaw.location_zero + Imu_mini.Angle_Yaw_real); //TODO: 调整正负号
+    yaw = -(DM6006_yaw.location_real - DM6006_yaw.location_zero + Imu_mini.Angle_Yaw_real); //TODO: 调整正负号
     memcpy(Mini_pc_tx_buf+14,&yaw,4);
     id=Referee.Game_robot_status.robot_id;
     //if(Referee.Game_robot_status.robot_id > 50)

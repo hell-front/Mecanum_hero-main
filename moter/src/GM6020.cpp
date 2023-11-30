@@ -3,12 +3,12 @@
 
 
 
-
-GM6020_moter::GM6020_moter(uint8_t ID,float LOCATION,float LOCATION_ZERO,float LOCATION_MAX,float LOCATION_MIN){
-        CAN_ID=ID;
+ GM6020_moter::GM6020_moter(uint8_t Id,float Location,float Location_zero,float Location_min,float Location_max)
+ {
+        CAN_ID=Id;
         current_target=0;
-        location_zero=LOCATION_ZERO;
-        location_target=LOCATION;
+        location_zero=Location_zero;
+        location_target=Location;
         velocity_target=0;
         location_real=0;
         PROCESSED=0;
@@ -17,8 +17,8 @@ GM6020_moter::GM6020_moter(uint8_t ID,float LOCATION,float LOCATION_ZERO,float L
         angle_last=0;
         CAN_update=0;
         temperature=0;
-        location_max=LOCATION_MAX;
-        location_min=LOCATION_MIN;
+        location_max=Location_max;
+        location_min=Location_max;
 }
 
 

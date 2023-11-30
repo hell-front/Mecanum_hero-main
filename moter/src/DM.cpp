@@ -1,36 +1,37 @@
-#include "DM4310.h"
+#include "DM.h"
 #include "main.h"
 #include "string.h"
 
-DM4310_motor::DM4310_motor(uint8_t ID,float LOCATION)
+DM_motor::DM_motor(uint8_t ID,float LOCATION)
 {
         CAN_ID=ID;
-        position_real=LOCATION;
+        location_real=LOCATION;
         velocity_target=0;
-        position_real=0;
-        position_zero=0;
+        location_real=0;
+        location_zero=0;
         velocity_real=0;
         torque_real=0;
         CAN_update=0;
         Temperaturemos=0;
         Temperaturecoil=0;
+        location_min=0;
+        location_max=360;
 }
 
-void DM4310_motor::Can_Data_processing(uint8_t buf[])
+void DM_motor::Can_Data_processing(uint8_t buf[])
 {
 
         CAN_update++;
         state = buf[0]>>4;
-        position_real = (buf[1]<<8)|(buf[2]);
-        velocity_real = (buf[3]<<4)|(buf[4]>>4);
-        torque_real = ((buf[4]&0xF)<<8)|(buf[5]);
         Temperaturemos = buf[6];
         Temperaturecoil = buf[7];
 
-        position_real = uint_to_float(position_real,POSITION_MIN,POSITION_MAX,16);// (-12.5,12.5)
-        position_real = position_real*180.0f/PI;// (-716.2,716.2)
-        velocity_real = uint_to_float(velocity_real,VELOCITY_MIN,VELOCITY_MAX,12);// (-45.0,45.0)
-        torque_real = uint_to_float(torque_real,TORQUE_MIN,TORQUE_MAX,12);// (-18.0,18.0)
+        location_real = uint_to_float((buf[1]<<8)|(buf[2]),LOCATION_MIN,LOCATION_MAX,16);// (-12.5,12.5)
+        location_real = location_real/PI*180.0f;// (-716.2,716.2)
+        location_real = fmodf(location_real,360);
+        velocity_real = uint_to_float((buf[3]<<4)|(buf[4]>>4),VELOCITY_MIN,VELOCITY_MAX,12);// (-45.0,45.0)
+        velocity_real = velocity_real/PI*180.0f;// (-2578.3,2578.3)
+        torque_real = uint_to_float(((buf[4]&0xF)<<8)|(buf[5]),TORQUE_MIN,TORQUE_MAX,12);// (-18.0,18.0)
 
 }
 

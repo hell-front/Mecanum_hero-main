@@ -53,7 +53,7 @@ public:
 
 
 
-    GM6020_moter(uint8_t ID,float LOCATION,float LOCATION_ZERO,float LOCATION_MAX,float LOCATION_MIN);
+    GM6020_moter(uint8_t Id,float Location,float Location_zero,float Location_min,float Location_max);
 
 
     void set_current_real(int16_t CURRENT){current_real=CURRENT;}

@@ -42,8 +42,8 @@ extern C620_driver C620_chassis_4;
 
 extern Class_Super_Cup Super_Cup;
 /*----------在gimbal.cpp文件中定义的变量----------*/
-extern DM4310_motor test_motor;
-extern GM6020_moter GM6020_yaw;
+extern DM_motor DM4310_pitch;
+extern DM_motor DM6006_yaw;
 extern uint8_t auto_aim_buf[];
 extern Class_Gimbal Gimbal;
 
@@ -162,39 +162,30 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 					case 0x202:{
 						C620_plate.Can_Data_processing(can_Rx_buf);
 						break;
+          }
+          case 0x203:{
+						friction_right_front.Can_Data_processing(can_Rx_buf);
+						break;
 					}
 					case 0x204:{
 						friction_left_front.Can_Data_processing(can_Rx_buf);
 						break;
-
-					}
-					case 0x203:{
-						friction_right_front.Can_Data_processing(can_Rx_buf);
-						break;
-
 					}
 					case 0x205:{
-						GM6020_yaw.Can_Data_processing(can_Rx_buf);
+						DM6006_yaw.Can_Data_processing(can_Rx_buf);
 						break;
 					}
-					// case 0x206:{
-					// 	GM6020_pitch.Can_Data_processing(can_Rx_buf);
-					// 	break;
-					// }
+					case 0x206:{
+						DM4310_pitch.Can_Data_processing(can_Rx_buf);
+						break;
+					}
+          case 0x207:{
+						friction_right_back.Can_Data_processing(can_Rx_buf);
+						break;
+					}
           case 0x208:{
 						friction_left_back.Can_Data_processing(can_Rx_buf);
 						break;
-
-					}
-					case 0x207:{
-						friction_right_back.Can_Data_processing(can_Rx_buf);
-						break;
-
-					}
-          case 0x210:{
-						test_motor.Can_Data_processing(can_Rx_buf);
-						break;
-
 					}
 					default:
 						break;

@@ -17,10 +17,10 @@ extern ADC_HandleTypeDef hadc1;
 
 
 
-C620_driver C620_chassis_1(0x01,19.0f);
-C620_driver C620_chassis_2(0x02,19.0f);
-C620_driver C620_chassis_3(0x03,19.0f);
-C620_driver C620_chassis_4(0x04,19.0f);
+C620_driver C620_chassis_1(0x01,19.0f);//右前
+C620_driver C620_chassis_2(0x02,19.0f);//左前
+C620_driver C620_chassis_3(0x03,19.0f);//左后
+C620_driver C620_chassis_4(0x04,19.0f);//右后
 //GM6020_moter GM6020_chassis_1(0x01,145.3f,235.87f,0.0f,0.0f);
 //GM6020_moter GM6020_chassis_2(0x02,89.53f,179.53f,0.0f,0.0f);
 //GM6020_moter GM6020_chassis_3(0x03,210.9f,300.5f,0.0f,0.0f);

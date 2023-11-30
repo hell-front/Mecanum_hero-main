@@ -18,7 +18,7 @@ extern "C"{                      //-----------��׼д��-----------
 
 
 #define Gimbal_Tick (3u)
-#define Gimbal_Delta_Pitch (0.20f*Gimbal_Tick)
+#define Gimbal_Delta_Pitch (0.5f*Gimbal_Tick)
 #define Gimbal_Delta_Yaw (2.0f*Gimbal_Tick)
 
 
