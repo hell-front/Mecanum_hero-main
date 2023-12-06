@@ -21,10 +21,6 @@ C620_driver C620_chassis_1(0x01,19.0f);//右前
 C620_driver C620_chassis_2(0x02,19.0f);//左前
 C620_driver C620_chassis_3(0x03,19.0f);//左后
 C620_driver C620_chassis_4(0x04,19.0f);//右后
-//GM6020_moter GM6020_chassis_1(0x01,145.3f,235.87f,0.0f,0.0f);
-//GM6020_moter GM6020_chassis_2(0x02,89.53f,179.53f,0.0f,0.0f);
-//GM6020_moter GM6020_chassis_3(0x03,210.9f,300.5f,0.0f,0.0f);
-
 
 
 //struct  Chassis_move Chassis={0,0,0,1};
@@ -56,7 +52,8 @@ Class_Chassis::Class_Chassis(){
 
 
 
-void Class_Chassis::Chassis_init(float DELTA_VEL_X_PLUS,float DELTA_VEL_Y_PLUS,float DELTA_VEL_ANGLE_PLUS,float DELTA_VEL_X_MINUS,float DELTA_VEL_Y_MINUS,float DELTA_VEL_ANGLE_MINUS){
+void Class_Chassis::Chassis_init(float DELTA_VEL_X_PLUS,float DELTA_VEL_Y_PLUS,float DELTA_VEL_ANGLE_PLUS,float DELTA_VEL_X_MINUS,float DELTA_VEL_Y_MINUS,float DELTA_VEL_ANGLE_MINUS)
+{
     Delta_vel_x_plus=DELTA_VEL_X_PLUS;
     Delta_vel_y_plus=DELTA_VEL_Y_PLUS;
     Delta_vel_angle_plus=DELTA_VEL_ANGLE_PLUS;
@@ -261,9 +258,7 @@ void Chassis_Mecanum_wheel_PID(){
 
 
     C620_chassis_1.current_target=C620_chassis_1.velocity_PID.PID_anti_integral_saturated(C620_chassis_1.velocity_target,C620_chassis_1.get_velocity_real());
-
     C620_chassis_2.current_target=C620_chassis_2.velocity_PID.PID_anti_integral_saturated(C620_chassis_2.velocity_target,C620_chassis_2.get_velocity_real());
-
     C620_chassis_3.current_target=C620_chassis_3.velocity_PID.PID_anti_integral_saturated(C620_chassis_3.velocity_target,C620_chassis_3.get_velocity_real());
     C620_chassis_4.current_target=C620_chassis_4.velocity_PID.PID_anti_integral_saturated(C620_chassis_4.velocity_target,C620_chassis_4.get_velocity_real());
     
@@ -279,7 +274,8 @@ void Chassis_Mecanum_wheel_PID(){
 
 
 
-void velocity_plan_c(float velocity,float *velocity_plan,float Delta_plus,float Delta_minus){
+void velocity_plan_c(float velocity,float *velocity_plan,float Delta_plus,float Delta_minus)//规划最大最小速度
+{
 
     if(((velocity)*(*velocity_plan)>=0)&&((velocity)!=0)){
         if(fabsf(velocity)-fabsf(*velocity_plan)>=0){
@@ -315,7 +311,8 @@ void velocity_plan_c(float velocity,float *velocity_plan,float Delta_plus,float 
 
 }
 
-void location_plan_c(float location,float *location_plan,float Delta_location){
+void location_plan_c(float location,float *location_plan,float Delta_location)
+{
         if(location-*location_plan>0){
                 if(location-*location_plan<Delta_location){
                         *location_plan=location;

@@ -8,7 +8,7 @@
 
 
 
-C620_driver C620_plate(0x02,3591.0f/187.0f);
+MK20_driver MK20_Plate(0x02);
 C620_driver friction_left_front(0x04,1);
 C620_driver friction_right_front(0x03,1);
 C620_driver friction_left_back(0x08,1);
@@ -46,10 +46,10 @@ Class_Shoot::Class_Shoot(uint8_t STATE,float VELOCITY){
 
 void Shoot_init(){
 
-    C620_plate.location_PID.PID_init(12,0,5);
-    C620_plate.location_PID.PID_anti_integ_saturated_init(720,-720);
-    C620_plate.velocity_PID.PID_init(35*PI/9,0.4f*PI*Shoot_Tick/3,0);
-    C620_plate.velocity_PID.PID_anti_integ_saturated_init(Current_MAX_M2006,-Current_MAX_M2006);
+    MK20_Plate.location_PID.PID_init(12,0,5);
+    MK20_Plate.location_PID.PID_anti_integ_saturated_init(720,-720);
+    MK20_Plate.velocity_PID.PID_init(35*PI/9,0.4f*PI*Shoot_Tick/3,0);
+    MK20_Plate.velocity_PID.PID_anti_integ_saturated_init(Current_MAX_M2006,-Current_MAX_M2006);
 
 
 
@@ -81,25 +81,16 @@ void Shoot_resolution(){
             friction_left_back.velocity_target=Shoot_back.velocity_planned;
             friction_right_back.velocity_target=-Shoot_back.velocity_planned;
 
+            velocity_plan_s(0,&Shoot_front.velocity_planned,100000*Shoot_Tick,100000*Shoot_Tick);
+            friction_left_front.velocity_target=Shoot_front.velocity_planned;
+            friction_right_front.velocity_target=-Shoot_front.velocity_planned;
+
         }
         else{//状态为1时开始运行
             
             velocity_plan_s(Shoot_back.velocity,&Shoot_back.velocity_planned,100000*Shoot_Tick,100000*Shoot_Tick);
             friction_left_back.velocity_target=Shoot_back.velocity_planned;
             friction_right_back.velocity_target=-Shoot_back.velocity_planned;
-
-        }
-
-        if(Shoot_front.state_friction==0)//前置摩擦轮判断是否运行
-        {
-
-            velocity_plan_s(0,&Shoot_front.velocity_planned,100000*Shoot_Tick,100000*Shoot_Tick);
-            friction_left_front.velocity_target=Shoot_front.velocity_planned;
-            friction_right_front.velocity_target=-Shoot_front.velocity_planned;
-
-        }
-        else
-        {
 
             velocity_plan_s(Shoot_front.velocity,&Shoot_front.velocity_planned,100000*Shoot_Tick,100000*Shoot_Tick);
             friction_left_front.velocity_target=Shoot_front.velocity_planned;
@@ -109,7 +100,7 @@ void Shoot_resolution(){
 
 
     //未进入回避时判断正向拨动受阻
-	if((C620_plate.get_current_real()>9500)&&(Shoot_back.plate_locked == 0)&&(Shoot_front.plate_locked == 0))
+	if((MK20_Plate.get_current_real()>9500)&&(Shoot_back.plate_locked == 0)&&(Shoot_front.plate_locked == 0))
 	{
 		Shoot_front.Locked_time++;
         Shoot_back.Locked_time++;
@@ -121,7 +112,7 @@ void Shoot_resolution(){
 		if(Shoot_back.plate_locked == 0)
 		{
 			Shoot_back.plate_locked = 1;
-			Shoot_back.plate_location = C620_plate.get_location_real() - 45.0f;
+			Shoot_back.plate_location = MK20_Plate.get_location_real() - 45.0f;
 		}
 	}
 	//处理时间结束, 而后恢复正常
@@ -146,13 +137,7 @@ void Shoot_resolution(){
             }
 
         }
-        C620_plate.location_target=Shoot_back.plate_location_plan;
-
-
-
-        
-                
-
+        MK20_Plate.location_target=Shoot_back.plate_location_plan;
 
 }
 
@@ -163,8 +148,8 @@ void Shoot_PID(){
     friction_left_back.current_target=friction_left_back.velocity_PID.PID_anti_integral_saturated(friction_left_back.velocity_target,friction_left_back.get_velocity_real());
     friction_right_back.current_target=friction_right_back.velocity_PID.PID_anti_integral_saturated(friction_right_back.velocity_target,friction_right_back.get_velocity_real());
 
-    C620_plate.velocity_target=C620_plate.location_PID.PID_anti_integral_saturated(C620_plate.location_target,C620_plate.get_location_real());
-    C620_plate.current_target=C620_plate.velocity_PID.PID_anti_integral_saturated(C620_plate.velocity_target,C620_plate.get_velocity_real());
+    MK20_Plate.velocity_target=MK20_Plate.location_PID.PID_anti_integral_saturated(MK20_Plate.location_target,MK20_Plate.location_out_real);
+    MK20_Plate.current_target=MK20_Plate.velocity_PID.PID_anti_integral_saturated(MK20_Plate.velocity_target,MK20_Plate.location_out_real);
     
 }
 
@@ -200,17 +185,8 @@ void velocity_plan_s(float velocity,float *velocity_plan,float Delta_plus,float 
 /*高校联盟赛弹速规划*/
 void Bounce_speed_planning(void)
 {
-	if(Referee.Game_robot_status.shooter_id1_42mm_speed_limit == 16)//弹速限制
-	{	
         Shoot_front.velocity = ERUPT_SHOOT_SPEED_FRONT;
 		Shoot_back.velocity = ERUPT_SHOOT_SPEED_BACK;//爆发优先	
-	}
-
-    else //低保
-    {
-        Shoot_front.velocity = ERUPT_SHOOT_SPEED_FRONT;
-        Shoot_back.velocity = ERUPT_SHOOT_SPEED_BACK;//爆发优先
-    }
 }
 
 //开弹仓

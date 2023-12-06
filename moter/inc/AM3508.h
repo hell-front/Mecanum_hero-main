@@ -14,15 +14,14 @@ extern "C"{                      //-----------��׼д��-----------
 class MK20_driver
 {
 private:
-    int16_t current_real;
-    float   velocity_real;
-    float   location_real;
-    int8_t  temperature;
-    
-
 
 
 public:
+    int16_t current_real;
+    float   velocity_real;
+    float   location_real;
+    float   location_out_real;
+    int8_t  temperature;
 
     MK20_driver(uint8_t ID,float GEAR_RATIO=19);
     uint8_t CAN_ID;
@@ -31,9 +30,11 @@ public:
     int16_t current_target;
     float   velocity_target;
     float   location_target;
+
     float   gear_ratio;
 
     float angle_last;
+    int32_t rotation_angle;
 
 
 

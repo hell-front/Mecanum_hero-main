@@ -117,8 +117,8 @@ float Class_PID::PID_differ_advanced(float value_target,float value_real){
 }
 
 //不完全微分PID
-float Class_PID::PID_differ_filter(float value_target,float value_real){
-
+float Class_PID::PID_differ_filter(float value_target,float value_real)
+{
 
         error_now=value_target-value_real;
         error_integral+=error_now;

@@ -237,19 +237,18 @@ void Class_Remote_data::remote_DT7_control()//用遥控器控制机器人的函�
 //以下将对右面开关进行分析，右面的开关主要是负责射击机构的状态
         if(State_right==Remote_Switch_Right3&&State_right_last==Remote_Switch_Right2)
         {
-                // //非发射状态
-                // //在右侧档位为2和3时，若后摩擦轮开启（检测一组即可）gimbal_auto设为1，然后设置后摩擦轮关闭，反之亦然
-                // //该函数并不会拨弹，不太清楚意义何在，先注释掉看看
-                // if(Shoot_back.state_friction==0){
-                //         Gimbal.gimbal_auto=1;
-                //         Shoot_back.state_friction=1;
-                // }else{
-                //         Shoot_back.state_friction=0;
-                //         Gimbal.gimbal_auto=0;
-                // }
+                //切换准备发射状态
+                //在右侧档位切换2和3时，若后摩擦轮开启（检测一组即可）gimbal_auto设为1，然后设置后摩擦轮关闭，反之亦然
+                if(Shoot_back.state_friction==0){
+                        Gimbal.gimbal_auto=1;
+                        Shoot_back.state_friction=1;
+                }else{
+                        Shoot_back.state_friction=0;
+                        Gimbal.gimbal_auto=0;
+                }
                 
         }
-        if(State_right==Remote_Switch_Right1&&Shoot_back.state_friction==1&&Shoot_back.plate_locked==0)
+        if(State_right==Remote_Switch_Right1&&Shoot_back.state_friction==1/*&&Shoot_back.plate_locked==0*/)
         {
                 //当右侧档位为1时，进入发射状态
                 Remote.State_right1_num++;//开始计时
@@ -270,7 +269,6 @@ void Class_Remote_data::remote_DT7_control()//用遥控器控制机器人的函�
 }
 
 void Class_Remote_data::remote_keyboard_control(){//用键盘控制机器人的函数
-//        Bounce_speed_planning();//弹速规划
 
 	if(Key_Ctrl == 0 && Key_ctrl_last == 1)
 	{

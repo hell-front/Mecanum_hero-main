@@ -121,9 +121,6 @@ void Send_Data_DM_Mit(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , float angle
 
     float Position_Value;
 
-    if(angle>100)angle = 70;
-    if(angle<20)angle = 35;
-
     Position_Value = angle*PI/180.0;
     Velocity_Value = Velocity_Value*PI/180.0;
 

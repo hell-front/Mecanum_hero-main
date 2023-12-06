@@ -12,6 +12,7 @@
 #include "imu_mini.h"
 #include "mini_pc.h"
 #include "Pan_Tilt_AHRS.h"
+#include "Filter.h"
 
 rt_thread_t led_galloping;
 rt_thread_t task_init;
@@ -82,7 +83,7 @@ extern uint8_t auto_aim_buf[];
 
 /*----------在shoot.c文件�?定义的变�?----------*/
 extern Class_Shoot Shoot;
-extern C620_driver C620_plate;
+extern MK20_driver MK20_Plate;
 extern C620_driver friction_left_front;
 extern C620_driver friction_right_front;
 extern C620_driver friction_left_back;
@@ -206,40 +207,8 @@ void Task_test_motor(void *parameter)
 {
     float i;
     rt_thread_delay(1000);
-     if (DM4310_pitch.state>=8)
-    {
-        Send_Data_DM_Control(&hcan2,0x210,3,2);//清除错误信号
-        rt_thread_delay(200);//发出控制信息之后需要一定的处理时间
-    }
-        
-    Send_Data_DM_Control(&hcan2,0x210,1,2);   
-    rt_thread_delay(200);//发出控制信息之后需要一定的处理时间
-
     while(1)
     {
-        for (i=0.0f;i<=2.0f;i=i+0.2f)
-        {
-            Send_Data_DM_V(&hcan2,0x210,i);
-            rt_thread_delay(20);
-        }
-        for (i=2.0f;i>=0.0f;i=i-0.2f)
-        {
-            Send_Data_DM_V(&hcan2,0x210,i);
-            rt_thread_delay(20);
-        }
-        for (i=0.0f;i>=-2.0f;i=i-0.2f)
-        {
-            Send_Data_DM_V(&hcan2,0x210,i);
-            rt_thread_delay(20);
-        }
-        for (i=-2.0f;i<=0.0f;i=i+0.2f)
-        {
-            Send_Data_DM_V(&hcan2,0x210,i);
-            rt_thread_delay(20);
-        }
-
-
-
 
         // for (i=30.0f;i<=84.0f;i=i+0.2f)
         // {
@@ -260,12 +229,12 @@ void Task_test_motor(void *parameter)
         // Shoot_resolution();//发射装置测试程序
         // Shoot_PID();
         // rt_sem_take(sem_can_Tx_full,0x01);
-        // Send_Data_Dj(&hcan2,0x200,0,C620_plate.current_target,friction_right_front.current_target,friction_left_front.current_target);
+        // Send_Data_Dj(&hcan2,0x200,0,MK20_Plate.current_target,friction_right_front.current_target,friction_left_front.current_target);
         // rt_thread_delay(1);
         // Send_Data_Dj(&hcan2,0x1ff,0,0,friction_right_back.current_target,friction_left_back.current_target);
         // rt_thread_delay(1);
 
-        // C620_plate.CAN_update=0;    
+        // MK20_Plate.CAN_update=0;    
         // friction_left_front.CAN_update=0;
         // friction_right_front.CAN_update=0;
         // friction_left_back.CAN_update=0;
@@ -315,8 +284,6 @@ void Task_Chassis_tristeer_wheel(void *parameter){
 
 
 
-
-
             rt_sem_take(sem_can_Tx_full,0x01);
             Super_Cup.Send_PowerLimt(Referee.Game_robot_status.chassis_power_limit);//向超级电容发送数据,根据当前底盘的功率限制来确定功率Referee.Game_robot_status.chassis_power_limit
             C620_chassis_1.CAN_update=0;
@@ -337,32 +304,36 @@ void Task_Chassis_tristeer_wheel(void *parameter){
 
 }
 
-void Task_Gimbal(void *parameter){
-
-    Class_PID Angle_PID;
-    float Angle_Zero;
-    float Angle_Difference;
-
+void Task_Gimbal(void *parameter)
+{
+// Class_PID Angle_PID;
+// Class_one_order_lowpass_filter Angle_Filter;
+// float Angle_Zero;
+// float Angle_Difference;
     while (1)
     {   
         // if(Remote.connected&&(DM4310_pitch.CAN_update||DM6006_yaw.CAN_update)){
 
-            // Gimbal_resloution();
-            // Gimbal_PID();
-            // rt_sem_take(sem_can_Tx_full,0x01);
+            Gimbal_resloution();
+            Gimbal_PID();
+            rt_sem_take(sem_can_Tx_full,0x01);
 
 
-            Angle_PID.PID_init(0.98,0.01,0.05);
-            Angle_Zero = Gimbal.location_pitch-2.2f;
-            Angle_Difference = Angle_PID.PID_absolute(Gimbal.location_pitch,DM4310_pitch.location_real);
-            DM4310_pitch.location_target = Angle_Zero + Angle_Difference;
+            // Angle_PID.PID_init(0.98,0.02,0.15);
+            // Angle_PID.PID_differ_filter_init(0.3f);
+            // Angle_Zero = Gimbal.location_pitch-2.8f;
+
+            // Angle_Difference = Angle_PID.PID_differ_filter(Gimbal.location_pitch,DM4310_pitch.location_real);
+            // DM4310_pitch.location_target = Angle_Zero + Angle_Difference;
+
+        
             // if (DM4310_pitch.state>=8)
             // {
             //     Send_Data_DM_Control(&hcan2,0x210,3,2);//清除错误信号
             //     rt_thread_delay(1);//发出控制信息之后需要一定的处理时间
             // }
-            Send_Data_DM_Mit(&hcan2,0x206,DM4310_pitch.location_target,4.0f,70.0f,0.5f,2.0f);
-            rt_thread_delay(3);
+            Send_Data_DM_Mit(&hcan2,0x206,DM4310_pitch.location_target,0.001f,50.0f,0.5f,4.0f*cosf((Gimbal.location_pitch-50)/180*PI));
+            rt_thread_delay(1);
             // Send_Data_DM_PV(&hcan2,0x206,Gimbal.location_pitch,2.0f);
             // rt_thread_delay(2);
             // Send_Data_DM_V(&hcan2,0x206,DM4310_pitch.velocity_target);
@@ -410,44 +381,31 @@ void Task_Gimbal_init(void *parameter){
 void Task_Shoot(void *parameter){
     while (1)
     {
-        // if(Remote.connected&&friction_left_front.CAN_update&&friction_right_front.CAN_update&&friction_left_back.CAN_update&&friction_right_back.CAN_update){
+        if(Remote.connected/*&&friction_left_front.CAN_update&&friction_right_front.CAN_update&&friction_left_back.CAN_update&&friction_right_back.CAN_update*/)
+        {
 
             
 
         //     Shoot_resolution();
         //     Shoot_PID();
         //     rt_sem_take(sem_can_Tx_full,0x01);
-        //     Send_Data_Dj(&hcan2,0x200,0,C620_plate.current_target,friction_right_front.current_target,friction_left_front.current_target);
+        //     Send_Data_Dj(&hcan2,0x200,0,MK20_Plate.current_target,friction_right_front.current_target,friction_left_front.current_target);
         //     Send_Data_Dj(&hcan2,0x1ff,0,0,friction_right_back.current_target,friction_left_back.current_target);
         
-
-            
-
-        //     C620_plate.CAN_update=0;
-        //     friction_left_front.CAN_update=0;
-        //     friction_right_front.CAN_update=0;
-        //     friction_left_back.CAN_update=0;
-        //     friction_right_back.CAN_update=0;
-
-        // }else{
-        //     rt_sem_take(sem_can_Tx_full,0x01);
-        //     Send_Data_Dj(&hcan2,0x200,0,0,0,0);  
-        // }
-        
-        // rt_thread_delay(Shoot_Tick);.6
         Shoot_resolution();//发射装置测试程序
         Shoot_PID();
         rt_sem_take(sem_can_Tx_full,0x01);
-        Send_Data_Dj(&hcan2,0x200,0,C620_plate.current_target,friction_right_front.current_target,friction_left_front.current_target);
+        Send_Data_Dj(&hcan2,0x200,0,MK20_Plate.current_target,friction_right_front.current_target,friction_left_front.current_target);
         rt_thread_delay(1);
         Send_Data_Dj(&hcan2,0x1ff,0,0,friction_right_back.current_target,friction_left_back.current_target);
         rt_thread_delay(1);
 
-        C620_plate.CAN_update=0;    
+        MK20_Plate.CAN_update=0;    
         friction_left_front.CAN_update=0;
         friction_right_front.CAN_update=0;
         friction_left_back.CAN_update=0;
         friction_right_back.CAN_update=0;
+        }
 
     }
     
@@ -483,7 +441,7 @@ void Task_SerialPlot(void *parameter){
 
         while (1){
 
-            //temp1 = C620_plate.get_current_real();
+            //temp1 = MK20_Plate.get_current_real();
 //            temp2 = Referee.Power_heat_data.chassis_power;
 			// temp1=Imu_mini.AHRSdata_Packet.Roll;
 			// temp2 =Imu_mini.AHRSdata_Packet.Pitch;

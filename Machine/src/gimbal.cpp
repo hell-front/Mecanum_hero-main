@@ -38,8 +38,9 @@ uint32_t zeroing_time=0;//表示电机进入阈值的时间，
 
 void Gimbal_init()//该函数主要用于处理设置pitch轴和yaw轴电机的pid参数
 {
-        DM4310_pitch.location_max = 70.0f;
-        DM4310_pitch.location_min = 30.0f;
+        //标记pitch转动
+        DM4310_pitch.location_max = 80.0f;
+        DM4310_pitch.location_min = 28.0f;
 
 
         Gimbal.location_pitch=0;
@@ -55,29 +56,22 @@ void Gimbal_init()//该函数主要用于处理设置pitch轴和yaw轴电机的p
         float yaw_now;
         yaw_now=DM6006_yaw.location_real;
 
-        //Gimbal.PID_pitch.PID_init(0.5f,0,0.0f/Gimbal_Tick);//表示的是用于自瞄的PID参数的初始化，理论上直接等于位置环的PID即可，如果不稳则可以通过该小参数来解决
+        
+        DM4310_pitch.location_PID.PID_init(0.98,0.02,0.15);
+        DM4310_pitch.location_PID.PID_differ_filter_init(0.5f);
+
         Gimbal.PID_yaw.PID_init(0.5f,0,0.0f/Gimbal_Tick);
         Gimbal.PID_gyro.PID_init(6.5f,0.00001,105.4f/Gimbal_Tick);//表示用于小陀螺计算的时候的pid
 
         //电机pid参数设置，包括Kp，Ki，Kd,过滤器比例，结果的取值范围
 
         // DM6006_yaw.location_PID.PID_init(20.5,0,10.0f/Gimbal_Tick);
-        DM6006_yaw.location_PID.PID_init(20.5,0,3.0f);
+        DM4310_pitch.location_PID.PID_init(1.98,0.02,0.15);
         DM6006_yaw.location_PID.PID_differ_filter_init(0.3f);
         DM6006_yaw.location_PID.PID_anti_integ_saturated_init(360.0f,-360.0f);
 
-        // DM6006_yaw.velocity_PID.PID_init(1.0f*1000*PI/18.0f,5.5f*PI*Gimbal_Tick/18.0f,4000.0f*PI/(54.0f*Gimbal_Tick));
-        // DM6006_yaw.velocity_PID.PID_init(174.4f,2.88f,77.5f);
-        // DM6006_yaw.velocity_PID.PID_differ_filter_init(0.03f);
-        // DM6006_yaw.velocity_PID.PID_anti_integ_saturated_init(3,-3);
-
-
         //电机pid参数设置，包括Kp，Ki，Kd,过滤器比例，结果的取值范围
 
-        // DM4310_pitch.location_PID.PID_init(18,0,40.0f/Gimbal_Tick);
-        DM4310_pitch.location_PID.PID_init(8,0.02,-0.5);
-        DM4310_pitch.location_PID.PID_differ_filter_init(0.03f);
-        DM4310_pitch.location_PID.PID_anti_integ_saturated_init(-1000.0f,1000.0f);
 
 
         if(DM6006_yaw.location_real>185.0f)
@@ -85,11 +79,6 @@ void Gimbal_init()//该函数主要用于处理设置pitch轴和yaw轴电机的p
                 DM6006_yaw.location_zero=365.0f;
         }
   
-        if(DM4310_pitch.location_real>180.0f)
-        {
-                DM4310_pitch.location_zero=360.0f;
-        }
-
 
         Gimbal.pitch_planned=DM4310_pitch.location_real-DM4310_pitch.location_zero;
         Gimbal.yaw_planned=DM6006_yaw.location_real-DM6006_yaw.location_zero;
@@ -105,10 +94,14 @@ void Gimbal_resloution()//该函数主要用于初始化
         angle_z=-Imu_mini.Angle_Yaw;
         //读取底部陀螺仪的参数作为yaw轴补偿角度，用在小陀螺模式
 
+        //计算pitch轴的目标速度
+        Gimbal.Delta_Pitch_Max=Gimbal_Delta_Pitch;
+        location_plan_g(Gimbal.pitch_target,&Gimbal.pitch_planned,Gimbal.Delta_Pitch_Max);
+        Gimbal.pitch_target=Gimbal.location_pitch;
 
-
+       
+       
         Gimbal.yaw_real=fmodf(DM6006_yaw.location_real-DM6006_yaw.location_zero,360.0f);//表示的获取此时的云台相对电机的转动角度
-
 
         if(Gimbal.yaw_real>180.0f&&Gimbal.yaw_real<360.0f)//表示的是将角度转换为-180度到180度的区间内
         {
@@ -120,21 +113,15 @@ void Gimbal_resloution()//该函数主要用于初始化
         }
 
 
-
         if(Gimbal.gimbal_auto==1)//表示是否开启了自动瞄准，开启了则要对云台两个电机的角度进行一个补偿
         {
-
                 Gimbal.location_yaw+=0.001*Gimbal_Tick*Gimbal.PID_yaw.PID_absolute(0,-Gimbal.yaw_comp);//相对于当前位置去拟合，假定planed为当前位置以规避噪声
-
-
         }
 
 
         if(Chassis.state==state_gyro)//表示是否进入了小陀螺要对云台位置进行改变
         {
-                
                 Gimbal.location_yaw+=angle_z_last-angle_z;//此为通常做法，此做法配合PD控制不可避免的存在偏移
-
         }
         else
         {//表明此时底盘处在正常模式，需要判定是否处在归零模式
@@ -153,17 +140,7 @@ void Gimbal_resloution()//该函数主要用于初始化
         {
                 Gimbal.location_yaw+=angle_z_last-angle_z;//时刻减去底盘此时相对初始值转过的角度
         }
-        // if(Gimbal.yaw_real<1.0f&&Gimbal.yaw_real>-1.0f&&Chassis.zeroing_state&&Chassis.state==state_normal){//如果误差小于一定范围且要在一定时间，则认为置零过程结束
-        //         if(zeroing_time>=2){
-        //                 Chassis.zeroing_state=0;
-        //                 Chassis.velocity_angle=0;//结束的时候将底盘角速度赋值为0
-        //         }else{
-        //                 zeroing_time++;
-        //         }
-
-        // }else{
-        //         zeroing_time=0;
-        // }
+  
         if(Chassis.zeroing_state == -1)
         {
                 if (Gimbal.yaw_real > 0)
@@ -182,26 +159,20 @@ void Gimbal_resloution()//该函数主要用于初始化
 
 
         Gimbal.yaw_target=Gimbal.location_yaw;//表示得到最终的目标角度
-        Gimbal.pitch_target=Gimbal.location_pitch;
         
-
-
-        if(Gimbal.Init_OK&&Chassis.state==state_gyro){
-                Gimbal.Delta_Pitch_Max=Gimbal_Delta_Pitch;
+        if(Gimbal.Init_OK&&Chassis.state==state_gyro)
+        {
                 Gimbal.Delta_Yaw_Max=Gimbal_Delta_Yaw;
 
-        }else if(Gimbal.Init_OK){
-                Gimbal.Delta_Pitch_Max=Gimbal_Delta_Pitch;
+        }else if(Gimbal.Init_OK)
+        {
                 Gimbal.Delta_Yaw_Max=0.6f*Gimbal_Delta_Yaw;
-
         }
-        location_plan_g(Gimbal.pitch_target,&Gimbal.pitch_planned,Gimbal.Delta_Pitch_Max);//对云台进行速度规划
+        //对云台进行速度规划
         location_plan_g(Gimbal.yaw_target,&Gimbal.yaw_planned,Gimbal.Delta_Yaw_Max);
-
 
         Gimbal.gimbal_auto_last=Gimbal.gimbal_auto;//表示的是上一次的云台状态的值
 
-        DM4310_pitch.location_target=Gimbal.pitch_planned+DM4310_pitch.location_zero;
         DM6006_yaw.location_target=Gimbal.yaw_planned+DM6006_yaw.location_target;
 
         //aaa=angle_z;
@@ -211,9 +182,15 @@ void Gimbal_resloution()//该函数主要用于初始化
 }
 
 
-void Gimbal_PID(){
+void Gimbal_PID()
+{
         uint8_t chassis_gryo=Chassis.state;
         static uint8_t chassis_gryo_last=chassis_gryo;//该变量存储的是上一时刻底盘是否进入了小陀螺状态，和这次对比用以清除Yaw的PID参数
+        
+        float Angle_Zero;
+        float Angle_Difference;
+
+        
         if(chassis_gryo!=chassis_gryo_last){
                 DM6006_yaw.location_PID.PID_clear();
                 if(chassis_gryo==3){//表示这时候进入底盘进入了小陀螺状态，PID参数换成进入小陀螺状态的参数
@@ -233,8 +210,12 @@ void Gimbal_PID(){
         // }else{//表示的是没有进入小陀螺状态
         //        GM6020_yaw.velocity_target=GM6020_yaw.location_PID.PID_differ_filter_anti_saturated(GM6020_yaw.location_target,GM6020_yaw.get_location_real());
         // }
-        // if(Chassis.state!=chassis_gryo&&Gimbal.gimbal_auto==0){//表示没有进入小陀螺状态也没有进入自瞄状态
-        DM4310_pitch.velocity_target=DM4310_pitch.location_PID.PID_absolute(DM4310_pitch.location_target,DM4310_pitch.location_real);
+        // if(Chassis.state!=chassis_gryo&&Gimbal.gimbal_auto==0)
+        // {//表示没有进入小陀螺状态也没有进入自瞄状态
+                Angle_Zero = Gimbal.location_pitch-2.8f;
+                Angle_Difference = DM4310_pitch.location_PID.PID_differ_filter(Gimbal.pitch_target,DM4310_pitch.location_real);
+                DM4310_pitch.location_target = Angle_Zero + Angle_Difference;
+        //}
                 // DM6006_yaw.velocity_target=DM6006_yaw.location_PID.PID_differ_filter_anti_saturated(DM6006_yaw.location_target,DM6006_yaw.location_real);
                 // DM4310_pitch.velocity_target=DM4310_pitch.location_PID.PID_differ_filter_anti_saturated(DM4310_pitch.location_target,DM4310_pitch.location_real);
         // }else if(Chassis.state==chassis_gryo&&Gimbal.gimbal_auto==0){//表示进入了小陀螺状态但是没有进入自瞄状态
@@ -247,25 +228,13 @@ void Gimbal_PID(){
         //         DM6006_yaw.velocity_target=-Gimbal.Predicted_Velocity_Yaw/100.0f-57.2957805f*Imu_mini.Yaw_speed_real+DM6006_yaw.location_PID.PID_differ_filter_anti_saturated(DM6006_yaw.location_target,DM6006_yaw.location_real);
         //         DM4310_pitch.velocity_target=Gimbal.Predicted_Velocity_Pitch/100.0f+DM4310_pitch.location_PID.PID_differ_filter_anti_saturated(DM4310_pitch.location_target,DM4310_pitch.location_real);
         // }
-
-
-
-        // //GM6020_pitch.current_target=GM6020_pitch.velocity_PID.PID_differ_filter_anti_saturated(GM6020_pitch.velocity_target,GM6020_pitch.get_velocity_real()) + PITCH_BALANCE_CURRENT;
-        // // GM6020_pitch.current_target=GM6020_pitch.velocity_PID.PID_differ_filter_anti_saturated(GM6020_pitch.velocity_target,GM6020_pitch.get_velocity_real());
-        // //根据陀螺仪的安装方式，pitch轴对应的是陀螺仪的yaw
-        // GM6020_pitch.current_target=GM6020_pitch.velocity_PID.PID_differ_filter_anti_saturated(GM6020_pitch.velocity_target,Pan_Tilt_AHRS.GetYawOmega());
-        // // GM6020_yaw.current_target=GM6020_yaw.velocity_PID.PID_differ_filter_anti_saturated(GM6020_yaw.velocity_target,GM6020_yaw.get_velocity_real());
-        // GM6020_yaw.current_target=GM6020_yaw.velocity_PID.PID_differ_filter_anti_saturated(GM6020_yaw.velocity_target,-Pan_Tilt_AHRS.GetPitchOmega()  - Imu_mini.Yaw_speed_real * 180 / PI);
-        
-        // GM6020_yaw.voltage = 0;
-        // GM6020_pitch.voltage=GM6020_pitch.current_PID.PID_anti_integral_saturated(GM6020_pitch.current_target,GM6020_pitch.get_current_real());
-        // GM6020_yaw.voltage=GM6020_yaw.current_PID.PID_anti_integral_saturated(GM6020_yaw.current_target,GM6020_yaw.get_current_real());
-        
+      
 }
 
 
 
-void location_plan_g(float location,float *location_plan,float Delta_location){
+void location_plan_g(float location,float *location_plan,float Delta_location)//用于轨迹单步规划
+{
         if(location-*location_plan>0){
                 if(location-*location_plan<Delta_location){
                         *location_plan=location;

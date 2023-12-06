@@ -48,7 +48,7 @@ extern uint8_t auto_aim_buf[];
 extern Class_Gimbal Gimbal;
 
 /*----------在shoot.cpp文件中定义的变量----------*/
-extern C620_driver C620_plate;
+extern MK20_driver MK20_Plate;
 extern C620_driver friction_left_front;
 extern C620_driver friction_right_front;
 extern C620_driver friction_left_back;
@@ -160,7 +160,11 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 				switch (can_Rx_header.StdId)
 					{
 					case 0x202:{
-						C620_plate.Can_Data_processing(can_Rx_buf);
+						MK20_Plate.Can_Data0x200_processing(can_Rx_buf);
+						break;
+          }
+          case 0x302:{
+						MK20_Plate.Can_Data0x300_processing(can_Rx_buf);
 						break;
           }
           case 0x203:{

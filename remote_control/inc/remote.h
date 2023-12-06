@@ -11,7 +11,7 @@ extern "C"{                      //-----------��׼д��-----------
 #define Gain_x  (5.0f)
 #define Gain_y  (5.0f)
 #define Gain_omega (-20.0f)
-#define Gain_pitch (-0.0003f)
+#define Gain_pitch (-0.0006f)
 #define Gain_yaw   (0.001f)
 #define Gain_theta (0.05f)
 #define Gain_friction  (0.1f)

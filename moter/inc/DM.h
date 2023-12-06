@@ -19,7 +19,7 @@ extern "C"{
 #define   KP_MIN 0.0
 #define   KD_MAX 5.0
 #define   KD_MIN 0.0
-#define   PI 3.1416f
+#define   PI 3.1415926f
 
 float   uint_to_float(int x_int, float x_min, float x_max, int bits);//计算接收到的数据
 int     float_to_uint(float x, float x_min, float x_max, int bits);//计算准备发送的数据

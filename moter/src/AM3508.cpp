@@ -16,6 +16,7 @@ MK20_driver::MK20_driver(uint8_t ID,float GEAR_RATIO){
         temperature=0;
         angle_last=0;
         CAN_update=0;
+        rotation_angle=0;
 
 
 
@@ -27,12 +28,16 @@ void MK20_driver::set_zero_position(){
 }
 
 //结束电机返回帧为0x300+ID的处理函数，此返回的为绝对位置，如果使用速度模式。则可以用过上位机把此帧给屏蔽掉
-void MK20_driver::Can_Data0x300_processing(uint8_t buf[]){
-
+void MK20_driver::Can_Data0x300_processing(uint8_t buf[])
+{
+    rotation_angle=int32_t((buf[0]<<24)|(buf[1]<<16)|(buf[2]<<8)|buf[3]);
+    location_out_real=((int16_t)((buf[4]<<8)|(buf[5])))*360.0f/8191.0f;;
+    
 }
 
 //接受电机返回帧为0x200+ID的处理函数，该帧下和C620的返回格式完全一样，如果要用此返回帧的位置，则必须保证返回频率为1kHZ，否则就有位置丢失的可能
-void MK20_driver::Can_Data0x200_processing(uint8_t buf[]){
+void MK20_driver::Can_Data0x200_processing(uint8_t buf[])
+{
 
     float angle_now;
 
