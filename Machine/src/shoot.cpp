@@ -46,10 +46,10 @@ Class_Shoot::Class_Shoot(uint8_t STATE,float VELOCITY){
 
 void Shoot_init(){
 
-    MK20_Plate.location_PID.PID_init(12,0,5);
+    MK20_Plate.location_PID.PID_init(8,0,2.5);
     MK20_Plate.location_PID.PID_anti_integ_saturated_init(720,-720);
-    MK20_Plate.velocity_PID.PID_init(35*PI/9,0.4f*PI*Shoot_Tick/3,0);
-    MK20_Plate.velocity_PID.PID_anti_integ_saturated_init(Current_MAX_M2006,-Current_MAX_M2006);
+    MK20_Plate.velocity_PID.PID_init(0.95f,0.0047f,2);
+    MK20_Plate.velocity_PID.PID_anti_integ_saturated_init(Current_MAX_M3508,-Current_MAX_M3508);
 
 
 
@@ -112,7 +112,7 @@ void Shoot_resolution(){
 		if(Shoot_back.plate_locked == 0)
 		{
 			Shoot_back.plate_locked = 1;
-			Shoot_back.plate_location = MK20_Plate.get_location_real() - 45.0f;
+			Shoot_back.plate_location = MK20_Plate.location_out_real - 45.0f;
 		}
 	}
 	//处理时间结束, 而后恢复正常
@@ -149,7 +149,7 @@ void Shoot_PID(){
     friction_right_back.current_target=friction_right_back.velocity_PID.PID_anti_integral_saturated(friction_right_back.velocity_target,friction_right_back.get_velocity_real());
 
     MK20_Plate.velocity_target=MK20_Plate.location_PID.PID_anti_integral_saturated(MK20_Plate.location_target,MK20_Plate.location_out_real);
-    MK20_Plate.current_target=MK20_Plate.velocity_PID.PID_anti_integral_saturated(MK20_Plate.velocity_target,MK20_Plate.location_out_real);
+    MK20_Plate.current_target=MK20_Plate.velocity_PID.PID_anti_integral_saturated(MK20_Plate.velocity_target,MK20_Plate.velocity_real);
     
 }
 
@@ -180,24 +180,5 @@ void velocity_plan_s(float velocity,float *velocity_plan,float Delta_plus,float 
     
 
 
-}
-
-/*高校联盟赛弹速规划*/
-void Bounce_speed_planning(void)
-{
-        Shoot_front.velocity = ERUPT_SHOOT_SPEED_FRONT;
-		Shoot_back.velocity = ERUPT_SHOOT_SPEED_BACK;//爆发优先	
-}
-
-//开弹仓
-void magazine_open(void)
-{
-	set_servo_revolve_angle(100);
-}
-
-//关弹仓
-void magazine_close(void)
-{
-	set_servo_revolve_angle(45);
 }
 

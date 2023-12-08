@@ -19,7 +19,7 @@ rt_thread_t task_init;
 rt_thread_t task_serialplot;
 rt_thread_t mpu6500_communication;
 rt_thread_t task_heating_imu;
-//rt_thread_t task_chassis;
+rt_thread_t task_chassis;
 rt_thread_t task_gimbal;
 rt_thread_t task_gimbal_init;
 rt_thread_t task_shoot;
@@ -29,7 +29,7 @@ rt_thread_t task_send_data_to_miniPC;
 rt_thread_t task_test_motor;
 
 
-struct rt_thread task_chassis;
+// struct rt_thread task_chassis;
 
 rt_sem_t sem_imu_heated;
 rt_sem_t sem_can_Tx_full;
@@ -183,12 +183,12 @@ void Task_Init(void *parameter){
     task_gimbal_init=rt_thread_create("Gimbal_init",Task_Gimbal_init,RT_NULL,512,9,2);
     rt_thread_startup(task_gimbal_init);
 
-    //task_chassis=rt_thread_create("Chassis",Task_Chassis_tristeer_wheel,RT_NULL,2048,10,2);
-    //rt_thread_init(&task_chassis,"Chassis",Task_Chassis_tristeer_wheel,NULL,rt_chassis_stack,sizeof(rt_chassis_stack),10,2);
+    task_chassis=rt_thread_create("Chassis",Task_Chassis_tristeer_wheel,RT_NULL,2048,10,2);
+    // rt_thread_init(task_chassis,"Chassis",Task_Chassis_tristeer_wheel,NULL,rt_chassis_stack,sizeof(rt_chassis_stack),10,2);
     task_gimbal=rt_thread_create("Gimbal",Task_Gimbal,RT_NULL,2048,10,2);
     task_shoot=rt_thread_create("Shoot",Task_Shoot,RT_NULL,2048,10,2);
 	//task_referee_ui = rt_thread_create("UI",Task_Referee_UI,RT_NULL,2048,10,2);
-    //rt_thread_startup(&task_chassis);
+    rt_thread_startup(task_chassis);
     rt_thread_startup(task_gimbal);
     rt_thread_startup(task_shoot);
 	// rt_thread_startup(task_referee_ui);
@@ -272,7 +272,7 @@ void Task_heating_IMU(void *parameter){
 void Task_Chassis_tristeer_wheel(void *parameter){
     while (1)
     {
-        if(Remote.connected&&C620_chassis_1.CAN_update&&C620_chassis_2.CAN_update&&C620_chassis_3.CAN_update&&C620_chassis_4.CAN_update){
+        // if(Remote.connected&&C620_chassis_1.CAN_update&&C620_chassis_2.CAN_update&&C620_chassis_3.CAN_update&&C620_chassis_4.CAN_update){
             
             Chassis.Chassis_zeroing_if_OK();
             Chassis_Power_Limit();            
@@ -290,12 +290,12 @@ void Task_Chassis_tristeer_wheel(void *parameter){
             C620_chassis_2.CAN_update=0;
             C620_chassis_3.CAN_update=0;
             C620_chassis_4.CAN_update=0;
-        }else{
-            rt_sem_take(sem_can_Tx_full,0x01);
-            Send_Data_Dj(&hcan1,0x200,0,0,0,0);
-            rt_sem_take(sem_can_Tx_full,0x01);
-            Send_Data_Dj(&hcan1,0x1ff,0,0,0,0);            
-        }
+        // }else{
+        //     rt_sem_take(sem_can_Tx_full,0x01);
+        //     Send_Data_Dj(&hcan1,0x200,0,0,0,0);
+        //     rt_sem_take(sem_can_Tx_full,0x01);
+        //     Send_Data_Dj(&hcan1,0x1ff,0,0,0,0);            
+        // }
         rt_thread_delay(Chassis_Tick);
 
     }
@@ -325,19 +325,29 @@ void Task_Gimbal(void *parameter)
 
             // Angle_Difference = Angle_PID.PID_differ_filter(Gimbal.location_pitch,DM4310_pitch.location_real);
             // DM4310_pitch.location_target = Angle_Zero + Angle_Difference;
-
+            if(DM4310_pitch.location_real==0)
+            {
+                Send_Data_DM_Control(&hcan2,0x205,1,2);
+                Send_Data_DM_Control(&hcan2,0x206,1,0);
+            }
         
-            // if (DM4310_pitch.state>=8)
-            // {
-            //     Send_Data_DM_Control(&hcan2,0x210,3,2);//清除错误信号
-            //     rt_thread_delay(1);//发出控制信息之后需要一定的处理时间
-            // }
+            if (DM6006_yaw.state>=8)
+            {
+                Send_Data_DM_Control(&hcan2,0x205,3,2);//清除错误信号
+                rt_thread_delay(1);//发出控制信息之后需要一定的处理时间
+            }
+            if (DM4310_pitch.state>=8)
+            {
+                Send_Data_DM_Control(&hcan2,0x206,3,0);//清除错误信号
+                rt_thread_delay(1);//发出控制信息之后需要一定的处理时间
+            }
+            Send_Data_DM_V(&hcan2,0x205,DM6006_yaw.velocity_target);
             Send_Data_DM_Mit(&hcan2,0x206,DM4310_pitch.location_target,0.001f,50.0f,0.5f,4.0f*cosf((Gimbal.location_pitch-50)/180*PI));
             rt_thread_delay(1);
             // Send_Data_DM_PV(&hcan2,0x206,Gimbal.location_pitch,2.0f);
             // rt_thread_delay(2);
             // Send_Data_DM_V(&hcan2,0x206,DM4310_pitch.velocity_target);
-            // Send_Data_DM_V(&hcan2,0x205,DM6006_yaw.velocity_target);
+
 
 
             DM4310_pitch.CAN_update=0;
