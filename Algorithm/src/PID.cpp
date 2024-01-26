@@ -165,7 +165,6 @@ float Class_PID::PID_anti_integral_saturated(float value_target,float value_real
             return Result;
         }
 
-         
 }
 
 //抗饱和积分的积分分离PID
@@ -257,7 +256,7 @@ float Class_PID::PID_differ_advanced_anti_saturated(float value_target,float val
 }
 
 
-//抗饱和积分的不完全微分PID
+//抗饱和积分的不完全微分(低通)PID
 float Class_PID::PID_differ_filter_anti_saturated(float value_target,float value_real){
         error_now=value_target-value_real;
         if(Result>Result_MAX){

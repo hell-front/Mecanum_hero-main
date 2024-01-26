@@ -43,8 +43,8 @@ Class_imu_mini::Class_imu_mini(){
     Yaw_Degree_last=0;
     Angle_Yaw_real=0;
 	Yaw_speed_real=0;;
-    Yaw_Filter.One_LowPass_Filter_init(0.95,0);
-    Yawspeed_Filter.One_LowPass_Filter_init(0.95,0);
+    Yaw_Filter.One_LowPass_Filter_init(0.7f,0);
+    Yawspeed_Filter.One_LowPass_Filter_init(0.7f,0);
 
 
 
@@ -58,33 +58,33 @@ void Class_imu_mini::UART_Data_processing(uint16_t size){
         switch (buf_receive[1])//获取的数据要从buf[7]开始，到buf[6s+buf[2]]结束
         {
             case 0x40:{
-                memcpy(&IMUdata_Packet.gyroscope_x,buf_receive+7,4);
-                memcpy(&IMUdata_Packet.gyroscope_y,buf_receive+11,4);
-                memcpy(&IMUdata_Packet.gyroscope_z,buf_receive+15,4);
-                memcpy(&IMUdata_Packet.accelerometer_x,buf_receive+19,4);
-                memcpy(&IMUdata_Packet.accelerometer_y,buf_receive+23,4);
-                memcpy(&IMUdata_Packet.accelerometer_z,buf_receive+27,4);
-                memcpy(&IMUdata_Packet.magnetometer_x,buf_receive+31,4);
-                memcpy(&IMUdata_Packet.magnetometer_y,buf_receive+35,4);
-                memcpy(&IMUdata_Packet.magnetometer_z,buf_receive+39,4);
-                memcpy(&IMUdata_Packet.imu_temperature,buf_receive+43,4);
-                memcpy(&IMUdata_Packet.Pressure,buf_receive+47,4);//该数据虽然返回，但是没有任何实际效果
-                memcpy(&IMUdata_Packet.pressure_temperature,buf_receive+51,4);//该数据虽然返回，但是没有任何实际效果
-                memcpy(&IMUdata_Packet.Timestamp,buf_receive+55,4);
+                // memcpy(&IMUdata_Packet.gyroscope_x,buf_receive+7,4);
+                // memcpy(&IMUdata_Packet.gyroscope_y,buf_receive+11,4);
+                // memcpy(&IMUdata_Packet.gyroscope_z,buf_receive+15,4);
+                // memcpy(&IMUdata_Packet.accelerometer_x,buf_receive+19,4);
+                // memcpy(&IMUdata_Packet.accelerometer_y,buf_receive+23,4);
+                // memcpy(&IMUdata_Packet.accelerometer_z,buf_receive+27,4);
+                // memcpy(&IMUdata_Packet.magnetometer_x,buf_receive+31,4);
+                // memcpy(&IMUdata_Packet.magnetometer_y,buf_receive+35,4);
+                // memcpy(&IMUdata_Packet.magnetometer_z,buf_receive+39,4);
+                // memcpy(&IMUdata_Packet.imu_temperature,buf_receive+43,4);
+                // memcpy(&IMUdata_Packet.Pressure,buf_receive+47,4);//该数据虽然返回，但是没有任何实际效果
+                // memcpy(&IMUdata_Packet.pressure_temperature,buf_receive+51,4);//该数据虽然返回，但是没有任何实际效果
+                // memcpy(&IMUdata_Packet.Timestamp,buf_receive+55,4);
                 break;
             }
             case 0x41:{
-                memcpy(&AHRSdata_Packet.RollSpeed,buf_receive+7,4);
-                memcpy(&AHRSdata_Packet.PitchSpeed,buf_receive+11,4);
+                // memcpy(&AHRSdata_Packet.RollSpeed,buf_receive+7,4);
+                // memcpy(&AHRSdata_Packet.PitchSpeed,buf_receive+11,4);
                 memcpy(&AHRSdata_Packet.YawSpeed,buf_receive+15,4);
-                memcpy(&AHRSdata_Packet.Roll,buf_receive+19,4);
-                memcpy(&AHRSdata_Packet.Pitch,buf_receive+23,4);
+                // memcpy(&AHRSdata_Packet.Roll,buf_receive+19,4);
+                // memcpy(&AHRSdata_Packet.Pitch,buf_receive+23,4);
                 memcpy(&AHRSdata_Packet.Yaw,buf_receive+27,4);
-                memcpy(&AHRSdata_Packet.Qw,buf_receive+31,4);
-                memcpy(&AHRSdata_Packet.Qx,buf_receive+35,4);
-                memcpy(&AHRSdata_Packet.Qy,buf_receive+39,4);
-                memcpy(&AHRSdata_Packet.Qz,buf_receive+43,4);
-                memcpy(&AHRSdata_Packet.Timestamp,buf_receive+47,4);
+                // memcpy(&AHRSdata_Packet.Qw,buf_receive+31,4);
+                // memcpy(&AHRSdata_Packet.Qx,buf_receive+35,4);
+                // memcpy(&AHRSdata_Packet.Qy,buf_receive+39,4);
+                // memcpy(&AHRSdata_Packet.Qz,buf_receive+43,4);
+                // memcpy(&AHRSdata_Packet.Timestamp,buf_receive+47,4);
                 My_Data_processing();
                 break;
 
@@ -134,19 +134,15 @@ void Class_imu_mini::My_Data_processing(){
 
     Yaw_Degree=57.2957805f*(Yaw_radian_zero-AHRSdata_Packet.Yaw);//表示此时相对IMU绝对坐标系的偏航角的返回值
 
-    if(Yaw_Degree-Yaw_Degree_last>180.0f){
-		Angle_Yaw+=Yaw_Degree-Yaw_Degree_last-360.0f;
-   }else if(Yaw_Degree-Yaw_Degree_last<-180.0f){
-		Angle_Yaw+=Yaw_Degree-Yaw_Degree_last+360.0f;
-   }else{
-		Angle_Yaw+=Yaw_Degree-Yaw_Degree_last;
-   }
-   Angle_Yaw_real=Yaw_Filter.One_LowPass_Filter(Angle_Yaw);
-   Yaw_speed_real=Yawspeed_Filter.One_LowPass_Filter(AHRSdata_Packet.YawSpeed);
-    
-
-
-
+    if(Yaw_Degree-Yaw_Degree_last>300.0f){
+		Angle_Yaw+=(Yaw_Degree-Yaw_Degree_last-360.0f);
+    }else if(Yaw_Degree-Yaw_Degree_last<(-300.0f)){
+		Angle_Yaw+=(Yaw_Degree-Yaw_Degree_last+360.0f);
+    }else{
+		Angle_Yaw+=(Yaw_Degree-Yaw_Degree_last);
+    }
+    Angle_Yaw_real=Yaw_Filter.One_LowPass_Filter(Angle_Yaw);
+    Yaw_speed_real=57.2957805f*Yawspeed_Filter.One_LowPass_Filter(AHRSdata_Packet.YawSpeed);
     Yaw_Degree_last=Yaw_Degree;
 }
 

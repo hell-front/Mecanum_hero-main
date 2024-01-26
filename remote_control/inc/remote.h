@@ -35,6 +35,10 @@ extern "C"{                      //-----------��׼д��-----------
 #define Chassis_v_y_max   (3300)//y方向速度最大值
 #define Chassis_v_omega_max   (10000) //小陀螺模式的自转速度
 
+#define YAW_SPEED_COMPENSATION (600)//补偿遥控器操作的范围
+
+#define YAW_SPEED_COMPENSATION_AUTO (0.05f)//补偿自瞄操作的范围
+
 class Class_Remote_data
 {
 

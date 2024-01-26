@@ -28,9 +28,14 @@ void DM_motor::Can_Data_processing(uint8_t buf[])
 
         location_real = uint_to_float((buf[1]<<8)|(buf[2]),LOCATION_MIN,LOCATION_MAX,16);// (-12.5,12.5)
         location_real = location_real/PI*180.0f;// (-716.2,716.2)
-        location_real = fmodf(location_real,360);
+        while((location_real<0.0f)||(location_real>360.0f))
+        {
+                if(location_real<0.0f)location_real+=360.0f;
+                if(location_real>360.0f)location_real-=360.0f;
+        }
         velocity_real = uint_to_float((buf[3]<<4)|(buf[4]>>4),VELOCITY_MIN,VELOCITY_MAX,12);// (-45.0,45.0)
         velocity_real = velocity_real/PI*180.0f;// (-2578.3,2578.3)
+        
         torque_real = uint_to_float(((buf[4]&0xF)<<8)|(buf[5]),TORQUE_MIN,TORQUE_MAX,12);// (-18.0,18.0)
 
 }

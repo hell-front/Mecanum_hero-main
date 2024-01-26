@@ -13,11 +13,16 @@ extern "C"{                      //-----------��׼д��-----------
 #define Shoot_Tick   (3u)
 #define Shoot_plate_delta_location   (720*0.001f*Shoot_Tick)
 
-	/*高校联盟赛的射速控制3V3*/
 /*爆发优先*/
-//射速
-#define ERUPT_SHOOT_SPEED_FRONT   30900
-#define ERUPT_SHOOT_SPEED_BACK  21500
+
+#define ERUPT_SHOOT_SPEED_FRONT   31750
+#define ERUPT_SHOOT_SPEED_BACK  23200//天气一般寒冷预热过后温度参数
+
+// #define ERUPT_SHOOT_SPEED_FRONT   31350
+// #define ERUPT_SHOOT_SPEED_BACK  22900//天气不太寒冷预热过后温度参数
+
+// #define ERUPT_SHOOT_SPEED_FRONT   42500
+// #define ERUPT_SHOOT_SPEED_BACK  33900//0度以下，未预热的温度度参数
 
 
 
@@ -47,8 +52,8 @@ public:
     float Delta_vel_shoot_minus;
     float velocity;//摩擦轮的预期速度
     float velocity_planned;//摩擦轮转速规划
-    float plate_location;//拨盘预期的位置，以后轮为标准
-    float plate_location_plan;//拨盘规划的位置，防止速度过快，以后轮为标准
+    float plate_velocity;//拨盘预期的位置，以后轮为标准
+    float plate_velocity_plan;//拨盘规划的位置，防止速度过快，以后轮为标准
     float plate_locked;//表示plate是否发生了堵转，如果发生了堵转，则为1，如果没有，则为0，以后轮为标准
 	uint16_t Locked_time;//堵转时间，以后轮为标准
 	uint16_t Jamming_slove_time;//解决堵转时间，以后轮为标准

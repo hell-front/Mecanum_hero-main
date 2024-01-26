@@ -11,8 +11,8 @@ extern "C"{                      //-----------��׼д��-----------
 #include "moter.h"
 #include "PID.h"
 
-#define wheel_length  0.431f
-#define wheel_width   0.396f
+#define wheel_length  0.427f
+#define wheel_width   0.394f
 #define wheel_distance 0.3f
 
 #define state_normal 1

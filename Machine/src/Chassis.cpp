@@ -17,10 +17,10 @@ extern ADC_HandleTypeDef hadc1;
 
 
 
-C620_driver C620_chassis_1(0x01,19.0f);//右前
-C620_driver C620_chassis_2(0x02,19.0f);//左前
-C620_driver C620_chassis_3(0x03,19.0f);//左后
-C620_driver C620_chassis_4(0x04,19.0f);//右后
+C620_driver C620_chassis_right_front(0x01,19.0f);//右前
+C620_driver C620_chassis_left_front(0x02,19.0f);//左前
+C620_driver C620_chassis_left_back(0x03,19.0f);//左后
+C620_driver C620_chassis_right_back(0x04,19.0f);//右后
 
 
 //struct  Chassis_move Chassis={0,0,0,1};
@@ -34,7 +34,6 @@ extern Class_Gimbal Gimbal;
 
 //extern float YAW;
 extern Class_Remote_data Remote;
-//extern Class_MPU6500 Mpu_6500;
 extern Class_imu_mini Imu_mini;
 
 Class_Chassis::Class_Chassis(){
@@ -85,7 +84,7 @@ void Chassis_Power_Limit(){
     float Power_3508;//表示扣除6020后3508的剩余功率
     float Curr_3508;//表示3508的最大电流
 
-    float chassis_power = (adc_buf * 3.3f / 4096.0f - 1.65f) * 120;
+    float chassis_power = (adc_buf*3.3f/4096.0f-1.65f)*120;
     
     if(chassis_power<Super_Cup.Power_Limit_Max){//当能量比较充足的时候
         Chassis.K_vel+=0.01f;
@@ -98,16 +97,14 @@ void Chassis_Power_Limit(){
     if(Chassis.K_vel<0){
         Chassis.K_vel=0;
     }
-    //GM6020返回电流和实际电流（A）的关系为：0.000146322566f
-    //6020输出电压值和实际电压值（A）的关系为：
-
 
 
     Power_3508=Super_Cup.Power_Limit_Max;
 
     Curr_3508=Chassis.Power_PID.PID_anti_integral_saturated(Power_3508,chassis_power);//计算出来驱动电机电流的最大值
 
-    if(Curr_3508>Current_MAX_M3508){
+    if(Curr_3508>Current_MAX_M3508)
+    {
         Curr_3508=Current_MAX_M3508;
     }
     if (Curr_3508<0)
@@ -115,24 +112,22 @@ void Chassis_Power_Limit(){
         Curr_3508=0;
     }
     
-
-
-    C620_chassis_1.velocity_PID.PID_anti_integ_saturated_init(Curr_3508,-Curr_3508);
-    C620_chassis_2.velocity_PID.PID_anti_integ_saturated_init(Curr_3508,-Curr_3508);
-    C620_chassis_3.velocity_PID.PID_anti_integ_saturated_init(Curr_3508,-Curr_3508);
-    C620_chassis_4.velocity_PID.PID_anti_integ_saturated_init(Curr_3508,-Curr_3508);
+    C620_chassis_right_front.velocity_PID.PID_anti_integ_saturated_init(Curr_3508,-Curr_3508);
+    C620_chassis_left_front.velocity_PID.PID_anti_integ_saturated_init(Curr_3508,-Curr_3508);
+    C620_chassis_left_back.velocity_PID.PID_anti_integ_saturated_init(Curr_3508,-Curr_3508);
+    C620_chassis_right_back.velocity_PID.PID_anti_integ_saturated_init(Curr_3508,-Curr_3508);
 }
 
-void Class_Chassis::Chassis_zeroing_if_OK(){//判定此时是否需要强制修改角速度以求回到归0模式，方法为强制修改角速度
-        if(Chassis.state==state_normal){
-
-
-            if(Chassis.zeroing_state){//判定底盘此刻是否需要归零，如果需要，则执行该步骤操作，该步骤操作主要是修改角速度
-                Chassis.velocity_angle=Chassis.PID_angle.PID_anti_integral_saturated(Chassis.angle_target,-Imu_mini.Angle_Yaw_real-Chassis.angle_init);
-                // Chassis.velocity_angle=10 * (Chassis.angle_target-(-Imu_mini.Angle_Yaw_real-Chassis.angle_init));
-
-            } 
-        }
+void Class_Chassis::Chassis_zeroing_if_OK()
+{//判定此时是否需要强制修改角速度以求回到归0模式，方法为强制修改角速度
+    if(Chassis.state==state_normal)
+    {
+        if(Chassis.zeroing_state)
+        {//判定底盘此刻是否需要归零，如果需要，则执行该步骤操作，该步骤操作主要是修改角速度
+            Chassis.velocity_angle=Chassis.PID_angle.PID_anti_integral_saturated(Chassis.angle_target,-Imu_mini.Angle_Yaw_real-Chassis.angle_init);
+            // Chassis.velocity_angle=10 * (Chassis.angle_target-(-Imu_mini.Angle_Yaw_real-Chassis.angle_init));
+        } 
+    }
 }
 
 
@@ -140,137 +135,90 @@ void Class_Chassis::Chassis_zeroing_if_OK(){//判定此时是否需要强制修�
 
 
 
-void Chassis_Mecanum_wheel_init(){
+void Chassis_Mecanum_wheel_init()
+{
 
-
-
-
-    Chassis.Chassis_init(3840*0.001*Chassis_Tick,3840*0.001*Chassis_Tick,5760*0.001*Chassis_Tick,9600*0.001*Chassis_Tick,9600*0.001*Chassis_Tick,9600*0.001*Chassis_Tick);
+    Chassis.Chassis_init(11.52f,11.52f,17.28f,28.8f,28.8f,28.8f);
     Chassis.PID_angle.PID_init(50,0,0);
     Chassis.PID_angle.PID_anti_integ_saturated_init(10000.0f,-10000.0f);
     
-    C620_chassis_1.velocity_PID.PID_init(12.0f,0.03f*Chassis_Tick,0);
-    C620_chassis_1.velocity_PID.PID_anti_integ_saturated_init(16384,-16384);
+    C620_chassis_right_front.velocity_PID.PID_init(12.0f,0.09f,0);
+    C620_chassis_right_front.velocity_PID.PID_anti_integ_saturated_init(16384,-16384);
     
-    C620_chassis_2.velocity_PID.PID_init(12.0f,0.03f*Chassis_Tick,0);
-    C620_chassis_2.velocity_PID.PID_anti_integ_saturated_init(16384,-16384);
+    C620_chassis_left_front.velocity_PID.PID_init(12.0f,0.09f,0);
+    C620_chassis_left_front.velocity_PID.PID_anti_integ_saturated_init(16384,-16384);
     
-    C620_chassis_3.velocity_PID.PID_init(12.0f,0.03f*Chassis_Tick,0);
-    C620_chassis_3.velocity_PID.PID_anti_integ_saturated_init(16384,-16384);
+    C620_chassis_left_back.velocity_PID.PID_init(12.0f,0.09f,0);
+    C620_chassis_left_back.velocity_PID.PID_anti_integ_saturated_init(16384,-16384);
 
-    C620_chassis_4.velocity_PID.PID_init(12.0f,0.03f*Chassis_Tick,0);
-    C620_chassis_4.velocity_PID.PID_anti_integ_saturated_init(16384,-16384);
-
-    
-
-
-
-
+    C620_chassis_right_back.velocity_PID.PID_init(12.0f,0.09f,0);
+    C620_chassis_right_back.velocity_PID.PID_anti_integ_saturated_init(16384,-16384);
 
 
 }
 
 
-void Chassis_Mecanum_wheel_resolution(){
+void Chassis_Mecanum_wheel_resolution()
+{
 
 
-        //Chassis.Chassis_Movement_Plan();
+    //Chassis.Chassis_Movement_Plan();
 
-        float v_x=0,v_y=0;
-        float Theta=0;          //表示车旋�???的�?�度，为角度制表�???
-//        float Theta_ackerman=0;//表示三轮车模式下前轮旋转的�?�度，�?��?�度最大为±60°
+    float v_x=0,v_y=0;
+    float Theta=0;          //表示车旋转的角度，为角度制
+    if(Chassis.state==state_normal)
+    {
+        Chassis.Chassis_Movement_Plan();
 
+        Theta=-PI*Gimbal.yaw_real/180.0f;//将角度值化为弧度制
+        
+        // v_x=-Chassis.get_velocity_x_planned();
+        // v_y=Chassis.get_velocity_y_planned();          
 
-            
-        //if(Remote.State_1==state_normal){
-        if(Chassis.state==state_normal){
+        v_x=-Chassis.get_velocity_x_planned()*cosf(Theta)+Chassis.get_velocity_y_planned()*sinf(Theta);
+        v_y=Chassis.get_velocity_x_planned()*sinf(Theta)+Chassis.get_velocity_y_planned()*cosf(Theta);
+        //底盘处于云台跟随模式下，这个时候定义的正方向为云台的方向
+        C620_chassis_right_front.velocity_target=v_y-v_x+Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width);
+        C620_chassis_left_front.velocity_target=v_x+v_y+Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width);
+        C620_chassis_left_back.velocity_target=-(v_y-v_x-Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width));
+        C620_chassis_right_back.velocity_target=-(v_y+v_x-Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width));
+        //aaa=angle_target1;
 
-            Chassis.Chassis_Movement_Plan();
+    }
+    else if (Chassis.state==state_gyro)
+    {
+        Chassis.zeroing_state=0;//如果突然进入的小陀螺模式，则默认归零
 
+        Chassis.Chassis_Movement_Plan();
 
-            Theta=-PI*Gimbal.yaw_real/180.0f;//将角度值化为弧度制
-            
-            v_x=-Chassis.get_velocity_x_planned();
-            v_y=Chassis.get_velocity_y_planned();          
+        Theta=-PI*Gimbal.yaw_real/180.0f;//将角度值化为弧度制
 
+        v_x=-Chassis.get_velocity_x_planned()*cosf(Theta)+Chassis.get_velocity_y_planned()*sinf(Theta);
+        v_y=Chassis.get_velocity_x_planned()*sinf(Theta)+Chassis.get_velocity_y_planned()*cosf(Theta);
 
-            //v_x=-Chassis.get_velocity_x_planned()*cosf(Theta)+Chassis.get_velocity_y_planned()*sinf(Theta);
-            //v_y=Chassis.get_velocity_x_planned()*sinf(Theta)+Chassis.get_velocity_y_planned()*cosf(Theta);
+        float center_theta = 30.0f/180.0f*PI; //小陀螺模式下中心-顶点连线相对于底边的角度
+        //缓解高速运动时云台抖动的问题
+        C620_chassis_right_front.velocity_target=v_y-v_x+Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width);
+        C620_chassis_left_front.velocity_target=v_x+v_y+Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width);
+        C620_chassis_left_back.velocity_target=-(v_y-v_x-Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width));
+        C620_chassis_right_back.velocity_target=-(v_y+v_x-Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width));
 
-//底盘处于云台跟随模式下，这个时候定义的正方向为云台的方向
-            C620_chassis_1.velocity_target=v_y-v_x+Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width);
-            C620_chassis_2.velocity_target=v_x+v_y+Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width);
-            C620_chassis_3.velocity_target=-(v_y-v_x-Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width));
-            C620_chassis_4.velocity_target=-(v_y+v_x-Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width));
-
-
-
-
-
-
-
-            //aaa=angle_target1;
-            
-
- 
-                
-                        
-        //}else if (Remote.State_1==state_gyro){
-        }else if (Chassis.state==state_gyro){
-            Chassis.zeroing_state=0;//如果突然进入的小陀螺模式，则默认归零
-
-            Chassis.Chassis_Movement_Plan();
-
-            Theta=-PI*Gimbal.yaw_real/180.0f;//将角度值化为弧度制
-            
-            
-
-
-            v_x=-Chassis.get_velocity_x_planned()*cosf(Theta)+Chassis.get_velocity_y_planned()*sinf(Theta);
-            v_y=Chassis.get_velocity_x_planned()*sinf(Theta)+Chassis.get_velocity_y_planned()*cosf(Theta);
-
-
-            float center_theta = 30.0f / 180.0f * PI; //小陀螺模式下中心-顶点连线相对于底边的角度
-            //缓解高速运动时云台抖动的问题
-            C620_chassis_1.velocity_target=v_y-v_x+Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width);
-            C620_chassis_2.velocity_target=v_x+v_y+Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width);
-            C620_chassis_3.velocity_target=-(v_y-v_x-Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width));
-            C620_chassis_4.velocity_target=-(v_y+v_x-Chassis.get_velocity_angle_planned()*(wheel_length+wheel_width));
-
-
-
-
-   
-
-        }
-
-
-
-            
-
+    }
 
           
 }
 
 
 
-void Chassis_Mecanum_wheel_PID(){
+void Chassis_Mecanum_wheel_PID()
+{
 
-
-    C620_chassis_1.current_target=C620_chassis_1.velocity_PID.PID_anti_integral_saturated(C620_chassis_1.velocity_target,C620_chassis_1.get_velocity_real());
-    C620_chassis_2.current_target=C620_chassis_2.velocity_PID.PID_anti_integral_saturated(C620_chassis_2.velocity_target,C620_chassis_2.get_velocity_real());
-    C620_chassis_3.current_target=C620_chassis_3.velocity_PID.PID_anti_integral_saturated(C620_chassis_3.velocity_target,C620_chassis_3.get_velocity_real());
-    C620_chassis_4.current_target=C620_chassis_4.velocity_PID.PID_anti_integral_saturated(C620_chassis_4.velocity_target,C620_chassis_4.get_velocity_real());
+    C620_chassis_right_front.current_target=C620_chassis_right_front.velocity_PID.PID_anti_integral_saturated(C620_chassis_right_front.velocity_target,C620_chassis_right_front.get_velocity_real());
+    C620_chassis_left_front.current_target=C620_chassis_left_front.velocity_PID.PID_anti_integral_saturated(C620_chassis_left_front.velocity_target,C620_chassis_left_front.get_velocity_real());
+    C620_chassis_left_back.current_target=C620_chassis_left_back.velocity_PID.PID_anti_integral_saturated(C620_chassis_left_back.velocity_target,C620_chassis_left_back.get_velocity_real());
+    C620_chassis_right_back.current_target=C620_chassis_right_back.velocity_PID.PID_anti_integral_saturated(C620_chassis_right_back.velocity_target,C620_chassis_right_back.get_velocity_real());
     
-
 }
-
-
-
-
-
-
-
 
 
 

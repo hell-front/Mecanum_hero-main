@@ -61,7 +61,7 @@ public:
 
 	float Angle_Yaw;//，表示实际输出的相对初始时刻的转角，此次时的角度为多圈值，单位为度
 	float Angle_Yaw_real;//表示的是Angel——Yaw滤波后的结果，用度来表示，
-	float Yaw_speed_real;//表示的是速度低通滤波后的结果，用弧度来表示
+	float Yaw_speed_real;//表示的是速度低通滤波后的结果，用度来表示
 	
 	uint8_t processed;//表示是否是第一次进入中断函数，初始默认赋值为0，进入一次后改为1
 
@@ -78,15 +78,6 @@ public:
 	Class_one_order_lowpass_filter Yaw_Filter;//表示的输出角度的低通滤波，此处会写，但是不一定会用到
 	Class_one_order_lowpass_filter Yawspeed_Filter;//表示的输出角速度的低通滤波
 };
-
-
-
-
-
-
-
-
-
 
 
 

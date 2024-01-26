@@ -4,6 +4,7 @@
 #include "remote.h"
 #include "shoot.h"
 #include "referee.h"
+#include "mini_pc.h"
 
 
 
@@ -23,6 +24,7 @@ extern Class_Super_Cup Super_Cup;
 extern Referee_System Referee;
 extern float Firing_frequency;
 
+extern Class_Mini_pc Data_with_miniPC;
 
 //Class_Remote_data Remote={1024,1024,1024,1024,1,1,0,0,0,0,0,0,1024};
 Class_Remote_data Remote;
@@ -34,6 +36,8 @@ uint8_t gyro_state_flag_left = 0;
 uint8_t gyro_state_flag_right = 0;
 int16_t mouse_x_value = 0;
 int16_t mouse_y_value = 0;
+
+int16_t autoaim_flag = 0;//自瞄模式标志
 
 Class_Remote_data::Class_Remote_data(){
         Channel_0=1024;
@@ -104,14 +108,14 @@ void Class_Remote_data::remote_data_processing()
 
 
 
-        if(State_left!=Remote_Switch_Left3){//表示这时候处于遥控器控制模式
+        if(State_left!=Remote_Switch_Left3)
+        {//表示这时候处于遥控器控制模式
                 remote_DT7_control();
-
-        }else{//表示这时候是出于客户端(键盘控制模式)
+        }
+        else
+        {//表示这时候是出于客户端(键盘控制模式)
                 //注意，底盘的模式改变没有写，目前默认底盘的模式为模式1，即正常模式
                 remote_keyboard_control();
-                
-
         }
        
         State_left_last=State_left;
@@ -164,73 +168,101 @@ void Class_Remote_data::remote_DT7_control()//用遥控器控制机器人的函�
 
 
         Chassis.state=Remote.State_left;
-        Chassis.velocity_x=(Channel_2-1024)*Gain_x;
-        Chassis.velocity_y=(Channel_3-1024)*Gain_y;
-        Chassis.velocity_angle=(Channel_0-1024)*Gain_omega;
 
 //以下主要是对左侧开关进行分析
-        if(State_left==Remote_Switch_Left1||State_left==Remote_Switch_Left2)//当档位为1和2时，开启底盘和云台，关闭shoot
+        if(State_left==Remote_Switch_Left2)//当档位为2时，开启底盘和云台
         {
                 
-                Chassis.velocity_x=(Channel_2-1024)*Gain_x;
-                Chassis.velocity_y=(Channel_3-1024)*Gain_y;
-                Chassis.velocity_angle=(Channel_0-1024)*Gain_omega;
+                Chassis.velocity_x=(Channel_2-1024)*Gain_x*0.4;//cehng
+                Chassis.velocity_y=(Channel_3-1024)*Gain_y*0.4;
+                Chassis.velocity_angle=(Channel_0-1024)*Gain_omega*0.4;
                 
                 Gimbal.location_yaw+=(Channel_user-1024)*Gain_yaw;
                 Gimbal.location_pitch+=(Channel_1-1024)*Gain_pitch;
-                if(Gimbal.location_pitch<DM4310_pitch.location_min)
+                if(Channel_user>(YAW_SPEED_COMPENSATION+1024))
                 {
-                        Gimbal.location_pitch=DM4310_pitch.location_min;
+                        Gimbal.yaw_speed_compensation=1;
                 }
-                else if(Gimbal.location_pitch>DM4310_pitch.location_max)
+                else if(Channel_user<(1024-YAW_SPEED_COMPENSATION))
                 {
-                        Gimbal.location_pitch=DM4310_pitch.location_max;
+                        Gimbal.yaw_speed_compensation=-1;
+                }
+                else
+                {
+                        Gimbal.yaw_speed_compensation=-(Channel_user-1024.0f)/YAW_SPEED_COMPENSATION;
                 }
 
-        }else if(State_left==Remote_Switch_Left3)//当档位为3时，仅开启yaw和y方向，开启shoot
+                if(Gimbal.location_pitch<1.0f)Gimbal.location_pitch=1.0f;
+                if(Gimbal.location_pitch>67.0f)Gimbal.location_pitch=67.0f;
+
+                while((Gimbal.location_yaw<0.0f)||(Gimbal.location_yaw>360.0f))
+                {
+                        if(Gimbal.location_yaw<0.0f)Gimbal.location_yaw+=360.0f;
+                        if(Gimbal.location_yaw>360.0f)Gimbal.location_yaw-=360.0f;
+                }
+        }
+        else if(State_left==Remote_Switch_Left1)
         {
-                
-                //目前不太清楚为什么使用channel_user作为开启shoot的依据
-                Gimbal.location_yaw+=-(Channel_0-1024)*Gain_yaw;
-                Chassis.velocity_y=(Channel_3-1024)*Gain_y;
-                // Chassis.wheel_angle=-(Channel_2-1024)*0.16f;
-                // if(Chassis.wheel_angle>60.0f){
-                //         Chassis.wheel_angle=60.0f;
-                // }else if(Chassis.wheel_angle<-60.0f){
-                //         Chassis.wheel_angle=-60.0f;
-                // }
-
-
-                Shoot_back.velocity+=(Channel_user-1024)*Gain_friction;//开始对后摩擦轮进行加速
-                Shoot_front.velocity+=(Channel_user-1024)*Gain_friction;//开始对前摩擦轮进行加速
-
-                //具体的加速过程，写在shoot的 Shoot_resolution() 函数中
-
-                if (Shoot_back.velocity>ERUPT_SHOOT_SPEED_BACK)//设定后轮速度上下限
+                if(autoaim_flag==0)//非自瞄模式
                 {
-                        Shoot_back.velocity=ERUPT_SHOOT_SPEED_BACK;
+                        Gimbal.location_yaw-=(Channel_2-1024)*Gain_yaw;
+                        Gimbal.location_pitch+=(Channel_1-1024)*Gain_pitch;
+
+                        if(Channel_2>1024+YAW_SPEED_COMPENSATION)
+                        {
+                                Gimbal.yaw_speed_compensation=-1;
+                        }
+                        else if(Channel_2<1024-YAW_SPEED_COMPENSATION)
+                        {
+                                Gimbal.yaw_speed_compensation=1;
+                        }
+                        else
+                        {
+                                Gimbal.yaw_speed_compensation=-(Channel_2-1024.0f)/YAW_SPEED_COMPENSATION;
+                        }
+
+                        if(Gimbal.location_pitch<1.0f)Gimbal.location_pitch=1.0f;
+                        if(Gimbal.location_pitch>67.0f)Gimbal.location_pitch=67.0f;
+
+                        while((Gimbal.location_yaw<0.0f)||(Gimbal.location_yaw>360.0f))
+                        {
+                                if(Gimbal.location_yaw<0.0f)Gimbal.location_yaw+=360.0f;
+                                if(Gimbal.location_yaw>360.0f)Gimbal.location_yaw-=360.0f;
+                        }
+
                 }
-                else if (Shoot_back.velocity<0)
+                else if(autoaim_flag==1)
                 {
-                        Shoot_back.velocity=0;
-                }
-                
-                if (Shoot_front.velocity>ERUPT_SHOOT_SPEED_FRONT)//设定前轮速度上下限
-                {
-                        Shoot_front.velocity=ERUPT_SHOOT_SPEED_FRONT;
-                }else if (Shoot_front.velocity<0)
-                {
-                        Shoot_front.velocity=0;
+                        Gimbal.location_yaw-=Data_with_miniPC.predicted_delta_yaw/100;
+                        Gimbal.location_pitch+=Data_with_miniPC.predicted_delta_pitch/100;
+
+                        if(Data_with_miniPC.predicted_delta_yaw>YAW_SPEED_COMPENSATION_AUTO)
+                        {
+                                Gimbal.yaw_speed_compensation=-1;
+                        }
+                        else if(Data_with_miniPC.predicted_delta_yaw<-YAW_SPEED_COMPENSATION_AUTO)
+                        {
+                                Gimbal.yaw_speed_compensation=1;
+                        }
+                        else
+                        {
+                                Gimbal.yaw_speed_compensation=-Data_with_miniPC.predicted_delta_yaw/YAW_SPEED_COMPENSATION_AUTO;
+                        }
+
+                        if(Gimbal.location_pitch<1.0f)Gimbal.location_pitch=1.0f;
+                        if(Gimbal.location_pitch>67.0f)Gimbal.location_pitch=67.0f;
+
+                        while((Gimbal.location_yaw<0.0f)||(Gimbal.location_yaw>360.0f))
+                        {
+                                if(Gimbal.location_yaw<0.0f)Gimbal.location_yaw+=360.0f;
+                                if(Gimbal.location_yaw>360.0f)Gimbal.location_yaw-=360.0f;
+                        }
                 }
 
+        }
 
-
-                Gimbal.location_pitch+=(Channel_1-1024)*Gain_pitch;
-                if(Gimbal.location_pitch<DM4310_pitch.location_min){
-                        Gimbal.location_pitch=DM4310_pitch.location_min;
-                }else if(Gimbal.location_pitch>DM4310_pitch.location_max){
-                        Gimbal.location_pitch=DM4310_pitch.location_max;
-                }
+        else if(State_left==Remote_Switch_Left3)//当档位为3时，开启键盘模式
+        {
 
         }
 
@@ -239,50 +271,46 @@ void Class_Remote_data::remote_DT7_control()//用遥控器控制机器人的函�
         {
                 //切换准备发射状态
                 //在右侧档位切换2和3时，若后摩擦轮开启（检测一组即可）gimbal_auto设为1，然后设置后摩擦轮关闭，反之亦然
-                if(Shoot_back.state_friction==0){
+                if(Shoot_back.state_friction==0)
+                {
                         Gimbal.gimbal_auto=1;
                         Shoot_back.state_friction=1;
-                }else{
-                        Shoot_back.state_friction=0;
+                }
+                else
+                {
                         Gimbal.gimbal_auto=0;
+                        Shoot_back.state_friction=0;
                 }
                 
         }
-        if(State_right==Remote_Switch_Right1&&Shoot_back.state_friction==1/*&&Shoot_back.plate_locked==0*/)
+        if(State_right==Remote_Switch_Right1&&Shoot_back.state_friction==1)
         {
                 //当右侧档位为1时，进入发射状态
-                Remote.State_right1_num++;//开始计时
+
                 if(State_right_last==Remote_Switch_Right2)//
                 {
-                        Shoot_back.plate_location+=60.0f;
+                        Shoot_back.plate_velocity=100.0f;
                         Shoot_back.state_plate=1;
                 }
-                if(Remote.State_right1_num>142)
-                {
-                        Shoot_back.plate_location+=1.2f;
-                        Shoot_back.state_plate=2;
-                }
-
-        }else{
-               Remote.State_right1_num=0; 
         }
 }
 
-void Class_Remote_data::remote_keyboard_control(){//用键盘控制机器人的函数
+void Class_Remote_data::remote_keyboard_control()
+{//用键盘控制机器人的函数
 
 	if(Key_Ctrl == 0 && Key_ctrl_last == 1)
 	{
-		// if(Gyro_state ==0)
-		// {
-		// 	Gyro_state = 1;	//开小陀螺
-		// }
-		// else
-		// {
+		if(Gyro_state ==0)
+		{
+			Gyro_state = 1;	//开小陀螺
+		}
+		else
+		{
 			Gyro_state = 0;//关小陀螺
                         Chassis.velocity_angle=0;   
                         gyro_state_flag_left = 0; 
                         gyro_state_flag_right= 0;
-		// }
+		}
 	}
 	
 	if(Key_Shift == 0)//关闭超级电容
@@ -309,7 +337,6 @@ void Class_Remote_data::remote_keyboard_control(){//用键盘控制机器人的�
                 {
                         Gyro_state = 2;
                 }
-		
 	} 
 	else if(Gyro_state == 1)//小陀螺模式下的小陀螺
 	{
@@ -438,19 +465,14 @@ void Class_Remote_data::remote_keyboard_control(){//用键盘控制机器人的�
 		{
 			if(Referee.Game_robot_status.mains_power_shooter_output == 1)//判断发射机构是否上电
 			{
-                                Remote.Mouse_left_num++;
                                 if(Mouse_left_last == 0)//点射
                                 {
 
-                                        Shoot_back.plate_location+=60.0f;
+                                        Shoot_back.plate_velocity=100.0f;
                                         Shoot_back.state_plate=1;
                                 }
-                                if(Remote.Mouse_left_num > 20)//连射
-                                {
-                                        Shoot_back.plate_location+=Firing_frequency;
-                                        Shoot_back.state_plate=2;
-                                }
                         }
+
 		}
 		else
 		{

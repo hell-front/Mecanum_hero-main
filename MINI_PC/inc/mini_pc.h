@@ -42,8 +42,8 @@ class Class_Mini_pc{
         /*目标偏差的角度*/
         int16_t delta_yaw;      // 单位-18000~18000对应-180°~180°
         int16_t delta_pitch;    // 单位-18000~18000对应-180°~180°
-        int16_t predicted_delta_yaw;
-        int16_t predicted_delta_pitch;
+        int16_t predicted_delta_yaw; // 预测目标偏差角度，单位-18000~18000对应-180°~180°
+        int16_t predicted_delta_pitch; // 预测目标偏差角度，单位-18000~18000对应-180°~180°
         /*目标的距离*/
         int16_t target_distance;// 单位1000对应1米
         int16_t predicted_vx;

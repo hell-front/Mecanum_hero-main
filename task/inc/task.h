@@ -28,6 +28,7 @@ void Task_Gimbal_init(void *parameter);
 void Task_Shoot(void *parameter);
 void Task_Referee(void *parameter);
 void Task_test_motor(void *parameter);
+void Task_DM_enable(void *parameter);
 
 void MPU6500_Communication(void *parameter);
 

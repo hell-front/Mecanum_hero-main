@@ -42,7 +42,7 @@ void MK20_driver::Can_Data0x200_processing(uint8_t buf[])
     float angle_now;
 
     CAN_update++;
-    angle_now=((int16_t)((buf[0]<<8)|(buf[1])))*360.0f/8191.0f;
+    angle_now=((int16_t)((buf[0]<<8)|(buf[1])))*360.0f/8191.0f;//换算成角度
     velocity_real=6.0f*((int16_t)((buf[2]<<8)|(buf[3])))/gear_ratio;
     current_real=((int16_t)((buf[4]<<8)|(buf[5])));
     temperature=(int8_t)buf[6];

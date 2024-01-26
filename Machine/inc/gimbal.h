@@ -37,7 +37,17 @@ private:
 
 public:
     
-    Class_Gimbal(float LOCATION_PITCH=0,float LOCATION_YAW=0){velocity_pitch=0;velocity_yaw=0;location_pitch=LOCATION_PITCH;location_yaw=LOCATION_YAW;gimbal_auto=1;Init_OK=0;}
+    Class_Gimbal(float LOCATION_PITCH=0,float LOCATION_YAW=0)
+    {
+    velocity_pitch=0;
+    velocity_yaw=0;
+    location_pitch=LOCATION_PITCH;
+    location_yaw=LOCATION_YAW;
+    gimbal_auto=1;
+    Init_OK=0;
+    yaw_imu_angle=0;
+    yaw_speed_compensation=0;
+    }
 
 
     float velocity_pitch;
@@ -86,8 +96,10 @@ public:
     Class_PID PID_yaw;
 
     Class_PID PID_gyro;//用来表示底盘小陀螺的时候的角度的增量，用来避免误差
-            
 
+    float yaw_imu_angle;//陀螺仪积分得到的角度
+
+    float yaw_speed_compensation;
     void UART_Data_processing(uint8_t buf[]);//仅仅在自瞄模式下有用
 
 

@@ -35,7 +35,7 @@ class DM_motor
     uint8_t CAN_update;//检测can数据是否更新
     uint8_t state;//电机运行状态，>=8时有错误状态
     float   velocity_target;//最高速度（PV模式），目标追踪速度（V模式）
-    float   location_target;//位置速度控制模式下给定实际位置，限制速度
+    float   location_target;//mit和位置速度控制模式下给定实际位置
 
     float   torque_real;//实际力矩值
     float   velocity_real;//实际速度值，单位rad/s

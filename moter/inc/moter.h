@@ -39,6 +39,8 @@ void Send_Data_DM_V(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , float Velocit
 void Send_Data_DM_Control(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , int Mode , int Control_Mode);
 
 
+void Send_Data_DM_EMit(CAN_HandleTypeDef *hcan,uint16_t REAL_CAN_ID , float angle , float Velocity_Value , float Current_Value);
+
 float Mode_Long(float a,float b);
 
 

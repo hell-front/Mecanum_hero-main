@@ -35,10 +35,10 @@ extern TIM_HandleTypeDef htim14;
 extern TIM_HandleTypeDef htim13;
 
 /*----------在Chassis.cpp文件中定义的变量----------*/
-extern C620_driver C620_chassis_1;
-extern C620_driver C620_chassis_2;
-extern C620_driver C620_chassis_3;
-extern C620_driver C620_chassis_4;
+extern C620_driver C620_chassis_right_front;
+extern C620_driver C620_chassis_left_front;
+extern C620_driver C620_chassis_left_back;
+extern C620_driver C620_chassis_right_back;
 
 extern Class_Super_Cup Super_Cup;
 /*----------在gimbal.cpp文件中定义的变量----------*/
@@ -48,7 +48,7 @@ extern uint8_t auto_aim_buf[];
 extern Class_Gimbal Gimbal;
 
 /*----------在shoot.cpp文件中定义的变量----------*/
-extern MK20_driver MK20_Plate;
+extern C620_driver C620_Plate;
 extern C620_driver friction_left_front;
 extern C620_driver friction_right_front;
 extern C620_driver friction_left_back;
@@ -123,19 +123,19 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
         switch (can_Rx_header.StdId)
         {
         case 0x201:{
-            C620_chassis_1.Can_Data_processing(can_Rx_buf);
+            C620_chassis_right_front.Can_Data_processing(can_Rx_buf);
             break;
         }
         case 0x202:{
-            C620_chassis_2.Can_Data_processing(can_Rx_buf);
+            C620_chassis_left_front.Can_Data_processing(can_Rx_buf);
             break;
         }
         case 0x203:{
-            C620_chassis_3.Can_Data_processing(can_Rx_buf);
+            C620_chassis_left_back.Can_Data_processing(can_Rx_buf);
             break;
         }
         case 0x204:{
-            C620_chassis_4.Can_Data_processing(can_Rx_buf);
+            C620_chassis_right_back.Can_Data_processing(can_Rx_buf);
             break;
         }
         case 0x206:{
@@ -160,11 +160,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 				switch (can_Rx_header.StdId)
 					{
 					case 0x202:{
-						MK20_Plate.Can_Data0x200_processing(can_Rx_buf);
-						break;
-          }
-          case 0x302:{
-						MK20_Plate.Can_Data0x300_processing(can_Rx_buf);
+						C620_Plate.Can_Data_processing(can_Rx_buf);
 						break;
           }
           case 0x203:{
@@ -265,15 +261,15 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size){
         }
         if(huart->Instance==UART7){
           Imu_mini.UART_Data_processing(Size);
-          if(test_i<50)
-          {
-            test_i++;
-          }
-          else
-          {
-            test_i = 0;
-            HAL_GPIO_TogglePin(GPIOF,GPIO_PIN_14);
-          }
+          // if(test_i<50)
+          // {
+          //   test_i++;
+          // }
+          // else
+          // {
+          //   test_i = 0;
+          //   HAL_GPIO_TogglePin(GPIOF,GPIO_PIN_14);
+          // }
           
           HAL_UARTEx_ReceiveToIdle_DMA(&huart7,Imu_mini.buf_receive,263);
         }

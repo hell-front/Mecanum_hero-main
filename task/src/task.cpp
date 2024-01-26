@@ -27,6 +27,7 @@ rt_thread_t task_remote_check;
 rt_thread_t task_referee_ui;
 rt_thread_t task_send_data_to_miniPC;
 rt_thread_t task_test_motor;
+rt_thread_t task_DM_enable;
 
 
 // struct rt_thread task_chassis;
@@ -67,10 +68,10 @@ extern ADC_HandleTypeDef hadc1;
 
 /*----------在Chassis.c文件�?定义的变�?----------*/
 extern Class_Chassis Chassis;
-extern C620_driver C620_chassis_1;
-extern C620_driver C620_chassis_2;
-extern C620_driver C620_chassis_3;
-extern C620_driver C620_chassis_4;
+extern C620_driver C620_chassis_right_front;
+extern C620_driver C620_chassis_left_front;
+extern C620_driver C620_chassis_left_back;
+extern C620_driver C620_chassis_right_back;
 extern uint32_t adc_buf;
 
 extern Class_Super_Cup Super_Cup;
@@ -82,8 +83,8 @@ extern uint8_t auto_aim_buf[];
 
 
 /*----------在shoot.c文件�?定义的变�?----------*/
-extern Class_Shoot Shoot;
-extern MK20_driver MK20_Plate;
+extern Class_Shoot Shoot_back;
+extern C620_driver C620_Plate;
 extern C620_driver friction_left_front;
 extern C620_driver friction_right_front;
 extern C620_driver friction_left_back;
@@ -163,7 +164,7 @@ void Task_Init(void *parameter){
         
     // }m
     rt_thread_delay(50);
-    Chassis_Mecanum_wheel_init();
+    // Chassis_Mecanum_wheel_init();
     Chassis_Mecanum_wheel_init();  //底盘初�?�化，主要是初�?�化底盘电机的pid，初始化速度�?0防�?�暴�?
     Shoot_init();                   //云台初�?�化，内容同�?
     Gimbal_init();                  //射击初�?�化，内容同�?
@@ -191,6 +192,9 @@ void Task_Init(void *parameter){
     rt_thread_startup(task_chassis);
     rt_thread_startup(task_gimbal);
     rt_thread_startup(task_shoot);
+
+    task_DM_enable=rt_thread_create("DM_enable",Task_DM_enable,RT_NULL,512,9,2);
+    rt_thread_startup(task_DM_enable);
 	// rt_thread_startup(task_referee_ui);
 
     // task_send_data_to_miniPC=rt_thread_create("send_to_minipc",Task_Send_data_to_miniPC,RT_NULL,2048,10,2);
@@ -229,12 +233,12 @@ void Task_test_motor(void *parameter)
         // Shoot_resolution();//发射装置测试程序
         // Shoot_PID();
         // rt_sem_take(sem_can_Tx_full,0x01);
-        // Send_Data_Dj(&hcan2,0x200,0,MK20_Plate.current_target,friction_right_front.current_target,friction_left_front.current_target);
+        // Send_Data_Dj(&hcan2,0x200,0,C620_Plate.current_target,friction_right_front.current_target,friction_left_front.current_target);
         // rt_thread_delay(1);
         // Send_Data_Dj(&hcan2,0x1ff,0,0,friction_right_back.current_target,friction_left_back.current_target);
         // rt_thread_delay(1);
 
-        // MK20_Plate.CAN_update=0;    
+        // C620_Plate.CAN_update=0;    
         // friction_left_front.CAN_update=0;
         // friction_right_front.CAN_update=0;
         // friction_left_back.CAN_update=0;
@@ -270,42 +274,63 @@ void Task_heating_IMU(void *parameter){
 
 
 void Task_Chassis_tristeer_wheel(void *parameter){
+
     while (1)
     {
-        // if(Remote.connected&&C620_chassis_1.CAN_update&&C620_chassis_2.CAN_update&&C620_chassis_3.CAN_update&&C620_chassis_4.CAN_update){
+        if(Remote.connected&&C620_chassis_right_front.CAN_update&&C620_chassis_left_front.CAN_update&&C620_chassis_left_back.CAN_update&&C620_chassis_right_back.CAN_update)
+        {
             
             Chassis.Chassis_zeroing_if_OK();
             Chassis_Power_Limit();            
-			//Chassis.Chassis_Movement_Plan();//该行代码已经归入到resolution里面
             Chassis_Mecanum_wheel_resolution();
             Chassis_Mecanum_wheel_PID();
             rt_sem_take(sem_can_Tx_full,0x01);
-            Send_Data_Dj(&hcan1,0x200,C620_chassis_1.current_target,C620_chassis_2.current_target,C620_chassis_3.current_target,C620_chassis_4.current_target);
+            Send_Data_Dj(&hcan1,0x200,C620_chassis_right_front.current_target,C620_chassis_left_front.current_target,C620_chassis_left_back.current_target,C620_chassis_right_back.current_target);
 
 
 
             rt_sem_take(sem_can_Tx_full,0x01);
             Super_Cup.Send_PowerLimt(Referee.Game_robot_status.chassis_power_limit);//向超级电容发送数据,根据当前底盘的功率限制来确定功率Referee.Game_robot_status.chassis_power_limit
-            C620_chassis_1.CAN_update=0;
-            C620_chassis_2.CAN_update=0;
-            C620_chassis_3.CAN_update=0;
-            C620_chassis_4.CAN_update=0;
-        // }else{
-        //     rt_sem_take(sem_can_Tx_full,0x01);
-        //     Send_Data_Dj(&hcan1,0x200,0,0,0,0);
-        //     rt_sem_take(sem_can_Tx_full,0x01);
-        //     Send_Data_Dj(&hcan1,0x1ff,0,0,0,0);            
-        // }
+            C620_chassis_right_front.CAN_update=0;
+            C620_chassis_left_front.CAN_update=0;
+            C620_chassis_left_back.CAN_update=0;
+            C620_chassis_right_back.CAN_update=0;
+        }else{
+            rt_sem_take(sem_can_Tx_full,0x01);
+            Send_Data_Dj(&hcan1,0x200,0,0,0,0);           
+        }
         rt_thread_delay(Chassis_Tick);
 
     }
     
+}
 
+void Task_DM_enable(void *parameter)
+{
+    while(1)
+    {
+            Send_Data_DM_Control(&hcan2,0x206,1,0);//pitch轴使能
+            rt_thread_delay(500);//发出控制信息之后需要一定的处理时间
+            Send_Data_DM_Control(&hcan2,0x205,1,2);//yaw轴使能
+            rt_thread_delay(500);//发出控制信息之后需要一定的处理时间
+            if (DM6006_yaw.state>=8)
+            {
+                Send_Data_DM_Control(&hcan2,0x205,3,2);//清除错误信号
+                rt_thread_delay(100);//发出控制信息之后需要一定的处理时间
+            }
+            if (DM4310_pitch.state>=8)
+            {
+                Send_Data_DM_Control(&hcan2,0x206,3,0);//清除错误信号
+                rt_thread_delay(100);//发出控制信息之后需要一定的处理时间
+            }
+    }
 
 }
 
+
 void Task_Gimbal(void *parameter)
 {
+
 // Class_PID Angle_PID;
 // Class_one_order_lowpass_filter Angle_Filter;
 // float Angle_Zero;
@@ -316,48 +341,20 @@ void Task_Gimbal(void *parameter)
 
             Gimbal_resloution();
             Gimbal_PID();
-            rt_sem_take(sem_can_Tx_full,0x01);
 
+            // DM6006_yaw.location_real=Gimbal.yaw_real;
+            // DM6006_yaw.location_target=Gimbal.location_yaw;
 
-            // Angle_PID.PID_init(0.98,0.02,0.15);
-            // Angle_PID.PID_differ_filter_init(0.3f);
-            // Angle_Zero = Gimbal.location_pitch-2.8f;
-
-            // Angle_Difference = Angle_PID.PID_differ_filter(Gimbal.location_pitch,DM4310_pitch.location_real);
-            // DM4310_pitch.location_target = Angle_Zero + Angle_Difference;
-            if(DM4310_pitch.location_real==0)
-            {
-                Send_Data_DM_Control(&hcan2,0x205,1,2);
-                Send_Data_DM_Control(&hcan2,0x206,1,0);
-            }
-        
-            if (DM6006_yaw.state>=8)
-            {
-                Send_Data_DM_Control(&hcan2,0x205,3,2);//清除错误信号
-                rt_thread_delay(1);//发出控制信息之后需要一定的处理时间
-            }
-            if (DM4310_pitch.state>=8)
-            {
-                Send_Data_DM_Control(&hcan2,0x206,3,0);//清除错误信号
-                rt_thread_delay(1);//发出控制信息之后需要一定的处理时间
-            }
             Send_Data_DM_V(&hcan2,0x205,DM6006_yaw.velocity_target);
-            Send_Data_DM_Mit(&hcan2,0x206,DM4310_pitch.location_target,0.001f,50.0f,0.5f,4.0f*cosf((Gimbal.location_pitch-50)/180*PI));
-            rt_thread_delay(1);
-            // Send_Data_DM_PV(&hcan2,0x206,Gimbal.location_pitch,2.0f);
-            // rt_thread_delay(2);
-            // Send_Data_DM_V(&hcan2,0x206,DM4310_pitch.velocity_target);
-
-
+            rt_thread_delay(2);
+            // Send_Data_DM_Mit(&hcan2,0x206,DM4310_pitch.location_target,0.1f,50.0f,0.5f,(0.5f*cosf((DM4310_pitch.location_real-20.0f)/180.0f*PI)+0.05f));
+            Send_Data_DM_Mit(&hcan2,0x206,DM4310_pitch.location_target,0.1f,50.0f,0.5f,(0.5f*cosf((DM4310_pitch.location_real-20.0f)/180.0f*PI)+0.5f));
 
             DM4310_pitch.CAN_update=0;
             DM6006_yaw.CAN_update=0;
-        // }else{
-        //     rt_sem_take(sem_can_Tx_full,0x01);
-        //     Send_Data_Dj(&hcan2,0x1ff,0,0,0,0);            
-        // }
 
-        rt_thread_delay(Gimbal_Tick);
+
+        rt_thread_delay(2);
     }
     
 
@@ -380,8 +377,8 @@ void Task_Gimbal_init(void *parameter){
     Send_Data_DM_Control(&hcan2,0x205,1,0);    
     rt_thread_delay(100);//发出控制信息之后需要一定的处理时间
     while(gimbal_init_time<450){
-        gimbal_init_time++;
-        rt_thread_delay(10);
+    gimbal_init_time++;
+    rt_thread_delay(10);
     }
     Gimbal.Init_OK=1;
     rt_thread_delete(task_gimbal_init);
@@ -391,31 +388,32 @@ void Task_Gimbal_init(void *parameter){
 void Task_Shoot(void *parameter){
     while (1)
     {
-        if(Remote.connected/*&&friction_left_front.CAN_update&&friction_right_front.CAN_update&&friction_left_back.CAN_update&&friction_right_back.CAN_update*/)
+        if(Remote.connected&&friction_left_front.CAN_update&&friction_right_front.CAN_update&&friction_left_back.CAN_update&&friction_right_back.CAN_update)
         {
 
-            
-
-        //     Shoot_resolution();
-        //     Shoot_PID();
-        //     rt_sem_take(sem_can_Tx_full,0x01);
-        //     Send_Data_Dj(&hcan2,0x200,0,MK20_Plate.current_target,friction_right_front.current_target,friction_left_front.current_target);
-        //     Send_Data_Dj(&hcan2,0x1ff,0,0,friction_right_back.current_target,friction_left_back.current_target);
-        
         Shoot_resolution();//发射装置测试程序
         Shoot_PID();
         rt_sem_take(sem_can_Tx_full,0x01);
-        Send_Data_Dj(&hcan2,0x200,0,MK20_Plate.current_target,friction_right_front.current_target,friction_left_front.current_target);
+        Send_Data_Dj(&hcan2,0x200,0,C620_Plate.current_target,friction_right_front.current_target,friction_left_front.current_target);
         rt_thread_delay(1);
         Send_Data_Dj(&hcan2,0x1ff,0,0,friction_right_back.current_target,friction_left_back.current_target);
         rt_thread_delay(1);
 
-        MK20_Plate.CAN_update=0;    
+        C620_Plate.CAN_update=0;    
         friction_left_front.CAN_update=0;
         friction_right_front.CAN_update=0;
         friction_left_back.CAN_update=0;
         friction_right_back.CAN_update=0;
         }
+
+        else
+        {
+        Send_Data_Dj(&hcan2,0x200,0,0,0,0);
+        rt_thread_delay(1);
+        Send_Data_Dj(&hcan2,0x1ff,0,0,0,0);
+        rt_thread_delay(1);
+        }
+
 
     }
     
@@ -451,7 +449,7 @@ void Task_SerialPlot(void *parameter){
 
         while (1){
 
-            //temp1 = MK20_Plate.get_current_real();
+            //temp1 = C620_Plate.get_current_real();
 //            temp2 = Referee.Power_heat_data.chassis_power;
 			// temp1=Imu_mini.AHRSdata_Packet.Roll;
 			// temp2 =Imu_mini.AHRSdata_Packet.Pitch;
@@ -480,9 +478,13 @@ void Task_SerialPlot(void *parameter){
 //            temp7=Chassis.zeroing_state;
 //            temp8=Chassis.angle_target;
 //            temp9 = -Imu_mini.Angle_Yaw_real-Chassis.angle_init;
-            temp1 = Gimbal.location_pitch;
-            temp2 = DM4310_pitch.location_real;
-            temp3 = DM4310_pitch.location_target;
+            temp1 = DM6006_yaw.location_real;
+            temp2 = Gimbal.location_yaw;
+            temp3 = DM4310_pitch.location_real;
+            temp4 = Gimbal.location_pitch;
+            temp5 = DM6006_yaw.velocity_target;
+            temp6 = DM6006_yaw.velocity_real;
+            temp7 = Remote.Channel_2-1024;
             // temp1 = friction_left_back.velocity_real;//测试摩擦轮
             // temp2 = friction_left_front.velocity_real;
             // temp3 = friction_right_back.velocity_real;
